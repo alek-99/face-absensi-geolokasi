@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Guru;
 use App\Services\AbsensiService;
-use App\Services\FonnteService;
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -32,11 +32,13 @@ class KirimPengingatJendelaAbsen extends Command
             return self::SUCCESS;
         }
 
-        // Set waktu tanggal hari ini dengan jam dari data sekolah secara aman
-        $bukaAbsenMasuk = now()->setTimeFromTimeString($sekolah->jam_masuk)
+        // Kalkulasi jam buka absen secara presisi
+        $bukaAbsenMasuk = Carbon::parse($sekolah->jam_masuk)
+            ->setDateFrom($now)
             ->subMinutes($konfig->buka_absen_masuk_menit);
 
-        $bukaAbsenPulang = now()->setTimeFromTimeString($sekolah->jam_keluar)
+        $bukaAbsenPulang = Carbon::parse($sekolah->jam_keluar)
+            ->setDateFrom($now)
             ->subMinutes($konfig->buka_absen_pulang_menit);
 
         // Bandingkan format H:i (jam:menit)
@@ -71,7 +73,7 @@ class KirimPengingatJendelaAbsen extends Command
     {
         $hari = $absensiService->namaHariIndonesia(now());
 
-        // Optimasi: Filter guru yang memiliki jadwal aktif hari ini menggunakan database level filtering
+        // Optimasi: Filter guru yang memiliki jadwal aktif hari ini
         $queryGuru = Guru::whereHas('jadwals', function ($query) use ($hari) {
             $query->where('hari', $hari)->where('is_active', true);
         });
@@ -81,47 +83,32 @@ class KirimPengingatJendelaAbsen extends Command
             return;
         }
 
-        $url = url('/login');
-        
+        $url = url('/guru/absensi');
+
         // Menentukan konten teks berdasarkan jenis jendela absen
         if ($jenis === 'masuk') {
             $title = 'Absen Masuk Sudah Dibuka 🟢';
-            $body = 'Jendela absen masuk sudah dibuka. Silakan lakukan absen masuk sekarang.';
-            $waMessage = "*PENGINGAT ABSEN MASUK*\n\nHalo Bapak/Ibu Guru, jendela absen masuk saat ini sudah dibuka. Silakan segera melakukan absensi melalui aplikasi.\n\nLink Absensi: " . $url;
+            $body = "Halo Bapak/Ibu, jendela absen masuk saat ini sudah dibuka. Silakan segera melakukan absensi melalui aplikasi.\n\nLink: {$url}";
         } else {
             $title = 'Absen Pulang Sudah Dibuka 🔵';
-            $body = 'Jendela absen pulang sudah dibuka. Silakan lakukan absen pulang sekarang.';
-            $waMessage = "*PENGINGAT ABSEN PULANG*\n\nHalo Bapak/Ibu Guru, jam pelajaran hari ini telah usai dan jendela absen pulang sudah dibuka. Silakan melakukan absen pulang sebelum meninggalkan sekolah.\n\nLink Absensi: " . $url;
+            $body = "Halo Bapak/Ibu, jam pelajaran hari ini telah usai dan jendela absen pulang sudah dibuka. Silakan melakukan absen pulang.\n\nLink: {$url}";
         }
 
-        $totalTerkirimNotif = 0;
-        $totalTerkirimWa = 0;
+        $totalTerkirim = 0;
 
-        // Memproses data secara bertahap (chunking) untuk menjaga kestabilan alokasi RAM server
-        $queryGuru->chunkById(100, function ($gurus) use ($absensiService, $title, $body, $waMessage, $jenis, &$totalTerkirimNotif, &$totalTerkirimWa) {
+        // Memproses data secara bertahap (chunking)
+        $queryGuru->chunkById(100, function ($gurus) use ($absensiService, $title, $body, $jenis, &$totalTerkirim) {
             foreach ($gurus as $guru) {
-                // 1. Proses Kirim Push Notification
                 try {
-                    $absensiService->kirimNotifikasiKeGuru($guru, $title, $body);
-                    $totalTerkirimNotif++;
+                    // kirimNotifikasiKeGuru SUDAH menangani Push Notification & Fonnte WhatsApp sekaligus!
+                    $absensiService->kirimNotifikasiKeGuru($guru, $title, $body, url('/guru/absensi'));
+                    $totalTerkirim++;
                 } catch (\Throwable $e) {
-                    Log::error("Gagal kirim PUSH pengingat absen {$jenis} ke guru #{$guru->id}: " . $e->getMessage());
-                }
-
-                // 2. Proses Kirim WhatsApp jika nomor HP tersedia
-                if (!empty($guru->no_hp)) {
-                    try {
-                        $kirimWa = FonnteService::sendMessage($guru->no_hp, $waMessage);
-                        if ($kirimWa) {
-                            $totalTerkirimWa++;
-                        }
-                    } catch (\Throwable $e) {
-                        Log::error("Gagal kirim WA pengingat absen {$jenis} ke guru #{$guru->id}: " . $e->getMessage());
-                    }
+                    Log::error("Gagal kirim notifikasi pengingat absen {$jenis} ke guru #{$guru->id}: " . $e->getMessage());
                 }
             }
         });
 
-        $this->info("Berhasil mengirim {$totalTerkirimNotif} Push Notif dan {$totalTerkirimWa} WhatsApp untuk absen {$jenis}.");
+        $this->info("Berhasil memproses notifikasi (Push & WA) untuk {$totalTerkirim} guru pada absen {$jenis}.");
     }
 }

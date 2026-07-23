@@ -1,29 +1,25 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-
-// Import Admin Controllers
-use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\Admin\NotifikasiController as AdminNotifikasiController;
-use App\Http\Controllers\Admin\GuruController as AdminGuruController;
 use App\Http\Controllers\Admin\AbsensiController as AdminAbsensiController;
-use App\Http\Controllers\Admin\SekolahController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\GuruController as AdminGuruController;
 use App\Http\Controllers\Admin\JadwalController as AdminJadwalController;
+use App\Http\Controllers\Admin\KelasController;
 use App\Http\Controllers\Admin\KonfigurasiAbsenController;
-use App\Http\Controllers\Admin\ReportSettingController;
+use App\Http\Controllers\Admin\NotifikasiController as AdminNotifikasiController;
 use App\Http\Controllers\Admin\PengaturanController;
+use App\Http\Controllers\Admin\ReportSettingController;
 use App\Http\Controllers\Admin\ReportTemplateController;
-
-// Import Guru Controllers
-use App\Http\Controllers\Guru\DashboardController as GuruDashboardController;
-use App\Http\Controllers\Guru\NotifikasiController as GuruNotifikasiController;
-use App\Http\Controllers\Guru\JadwalController as GuruJadwalController;
+use App\Http\Controllers\Admin\SekolahController;
+use App\Http\Controllers\Admin\SiswaController;
 use App\Http\Controllers\Guru\AbsensiController as GuruAbsensiController;
+use App\Http\Controllers\Guru\DashboardController as GuruDashboardController;
 use App\Http\Controllers\Guru\FaceDescriptorController;
-
-// Import General Controllers
+use App\Http\Controllers\Guru\JadwalController as GuruJadwalController;
+use App\Http\Controllers\Guru\NotifikasiController as GuruNotifikasiController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PushSubscriptionController;
+use Illuminate\Support\Facades\Route;
 
 // --------------------------------------------------------------------------
 // Public / Guest Routes
@@ -87,7 +83,10 @@ Route::middleware(['auth', 'role:admin'])->name('admin.')->prefix('admin')->grou
     Route::resource('/sekolah', SekolahController::class);
     Route::get('jadwal/cetak-pdf', [AdminJadwalController::class, 'cetakPdf'])->name('jadwal.pdf');
     Route::resource('/jadwal', AdminJadwalController::class);
-
+    // Kelas & siswa
+    Route::apiresource('/kelas', KelasController::class);
+//  // Gantikan 5 baris Route::get, post, put, delete untuk siswa dengan ini:
+    Route::resource('siswa', SiswaController::class);
     // Konfigurasi Absen & Reports
     Route::get('/konfigurasi-absen', [KonfigurasiAbsenController::class, 'index'])->name('pengaturan.absensi');
     Route::put('/konfigurasi-absen', [KonfigurasiAbsenController::class, 'update'])->name('konfigurasi-absen.update');
