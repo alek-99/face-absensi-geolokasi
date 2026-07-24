@@ -12,7 +12,9 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-[10px] font-bold text-indigo-200 uppercase tracking-wider">Selamat Datang</p>
-                    <h2 id="nama-guru" class="text-lg font-extrabold tracking-tight mt-0.5">—</h2>
+                    <h2 id="nama-guru" class="text-lg font-extrabold tracking-tight mt-0.5">
+                        {{ auth()->user()->name ?? '—' }}
+                    </h2>
                 </div>
                 <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-sm">
                     <i class="fa-solid fa-face-smile text-2xl text-white/90"></i>
@@ -22,7 +24,9 @@
         <div class="px-5 py-3.5 flex items-center justify-between bg-slate-50/80">
             <div class="flex items-center gap-2 text-xs text-slate-500">
                 <i class="fa-solid fa-calendar-day text-indigo-400"></i>
-                <span id="tanggal-hari-ini" class="font-semibold text-slate-600">Memuat...</span>
+                <span id="tanggal-hari-ini" class="font-semibold text-slate-600">
+                    {{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}
+                </span>
             </div>
             <div class="flex items-center gap-2 text-xs">
                 <span class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-indigo-50 text-indigo-600 font-semibold border border-indigo-100">
@@ -117,7 +121,7 @@
 </div>
 
 {{-- ============================================================ --}}
-{{-- MODAL KAMERA ABSENSI (Face ID + GPS)                        --}}
+{{-- MODAL KAMERA ABSENSI (Face ID + GPS)                         --}}
 {{-- ============================================================ --}}
 <div id="camera-modal" class="hidden fixed inset-0 bg-black/60 z-50 items-center justify-center p-4 backdrop-blur-sm">
     <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden border border-white/20">
@@ -135,7 +139,6 @@
 
         {{-- Camera View --}}
         <div id="modal-camera-view" class="p-5 space-y-4">
-            {{-- Video Feed --}}
             <div class="relative rounded-2xl overflow-hidden bg-black aspect-[3/4] flex items-center justify-center">
                 <video id="video" autoplay playsinline muted
                        class="absolute inset-0 w-full h-full object-cover mirror"></video>
@@ -166,8 +169,7 @@
             </div>
 
             {{-- Error Message --}}
-            <div id="modal-error" class="hidden p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium">
-            </div>
+            <div id="modal-error" class="hidden p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium"></div>
 
             {{-- Submit Button --}}
             <button id="btn-submit-absen" type="button"
@@ -192,7 +194,7 @@
 </div>
 
 {{-- ============================================================ --}}
-{{-- MODAL PENGAJUAN IZIN                                        --}}
+{{-- MODAL PENGAJUAN IZIN                                         --}}
 {{-- ============================================================ --}}
 <div id="modal-izin" class="hidden fixed inset-0 bg-black/50 z-50 items-center justify-center p-4 backdrop-blur-sm">
     <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden border border-white/20 max-h-[90vh] flex flex-col">
@@ -209,10 +211,9 @@
 
         {{-- Body --}}
         <div class="p-5 overflow-y-auto space-y-4 flex-1">
-            {{-- Info --}}
             <div class="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-[11px] font-medium leading-relaxed">
                 <i class="fa-solid fa-circle-info mr-1"></i>
-                Ajukan ketidakhadiran (izin, sakit, cuti, atau tugas luar) untuk tanggal tertentu. Pengajuan akan diverifikasi oleh admin.
+                Ajukan ketidakhadiran (Izin, Sakit, Cuti, atau Tugas Luar). Pengajuan akan diverifikasi oleh Admin.
             </div>
 
             <form id="form-izin" enctype="multipart/form-data" novalidate>
@@ -228,7 +229,7 @@
                            class="w-full rounded-xl bg-slate-50 border border-slate-200 text-xs focus:ring-amber-500 focus:border-amber-500 text-slate-800 font-medium py-2.5 px-3">
                 </div>
 
-                {{-- Status / Tipe Izin --}}
+                {{-- Tipe Izin --}}
                 <div class="space-y-1.5">
                     <label for="izin-status" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
                         Tipe <span class="text-red-400">*</span>
@@ -267,8 +268,7 @@
                 </div>
 
                 {{-- Error Container --}}
-                <div id="izin-error" class="hidden p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium">
-                </div>
+                <div id="izin-error" class="hidden p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-medium space-y-1"></div>
 
                 {{-- Submit Button --}}
                 <button type="submit" id="btn-kirim-izin"
@@ -281,7 +281,7 @@
 </div>
 
 {{-- ============================================================ --}}
-{{-- TOAST NOTIFICATION                                          --}}
+{{-- TOAST NOTIFICATION                                           --}}
 {{-- ============================================================ --}}
 <div id="toast" class="hidden fixed top-20 left-1/2 -translate-x-1/2 z-[60] w-full max-w-sm px-4 transition-all duration-300">
     <div id="toast-body" class="flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border text-sm font-medium">
@@ -289,8 +289,6 @@
         <span id="toast-message"></span>
     </div>
 </div>
-
-{{-- ============================================================ --}}
 
 <style>
     .animate-fade-in {
@@ -300,11 +298,9 @@
         from { opacity: 0; transform: translateY(8px); }
         to { opacity: 1; transform: translateY(0); }
     }
-    /* Mirror video (selfie view) */
     .mirror {
         transform: scaleX(-1);
     }
-    /* Toast animation */
     #toast.show {
         opacity: 1;
         transform: translateX(-50%) translateY(0);
@@ -313,31 +309,17 @@
         opacity: 0;
         transform: translateX(-50%) translateY(-12px);
     }
-    /* Prevent body scroll when modal open */
     body.modal-open {
         overflow: hidden;
     }
-    /* Loading shimmer effect for dynamic areas */
-    .shimmer {
-        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-        background-size: 200% 100%;
-        animation: shimmer 1.5s infinite;
-    }
-    @keyframes shimmer {
-        0% { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
-    }
 </style>
-
-
-
 
 <script>
     (function() {
         'use strict';
 
         // =============================================================
-        // 1. KONFIGURASI GLOBAL UNTUK absensi.js
+        // 1. KONFIGURASI GLOBAL UNTUK absensi.js (DISESUAIKAN DENGAN ROUTE CONTROLLER)
         // =============================================================
         window.ABSENSI_CONFIG = {
             modelsUrl: '{{ asset('/models') }}',
@@ -349,16 +331,15 @@
             csrfToken: '{{ csrf_token() }}',
         };
 
-        // Load the main absensi.js AFTER config is set
+        // Load absensi.js
         var script = document.createElement('script');
         script.src = '{{ asset("/js/absensi.js") }}';
         script.async = false;
         document.body.appendChild(script);
 
         // =============================================================
-        // 2. PENGAJUAN IZIN LOGIC (Fully independent, anti-bug)
+        // 2. LOGIK PENGAJUAN IZIN (AJAX BERBASED CONTROLLER VALIDATION)
         // =============================================================
-
         var els = {
             modal: document.getElementById('modal-izin'),
             btnBuka: document.getElementById('btn-buka-izin'),
@@ -373,14 +354,14 @@
             error: document.getElementById('izin-error'),
         };
 
-        // ---- Character counter ----
+        // Counter Karakter Keterangan
         if (els.keterangan && els.counter) {
             els.keterangan.addEventListener('input', function() {
                 els.counter.textContent = this.value.length;
             });
         }
 
-        // ---- Open modal ----
+        // Buka Modal
         if (els.btnBuka && els.modal) {
             els.btnBuka.addEventListener('click', function() {
                 els.modal.classList.remove('hidden');
@@ -388,12 +369,12 @@
                 document.body.classList.add('modal-open');
                 if (els.error) {
                     els.error.classList.add('hidden');
-                    els.error.textContent = '';
+                    els.error.innerHTML = '';
                 }
             });
         }
 
-        // ---- Close modal ----
+        // Tutup Modal
         function closeModalIzin() {
             if (!els.modal) return;
             els.modal.classList.add('hidden');
@@ -401,69 +382,31 @@
             document.body.classList.remove('modal-open');
         }
 
-        if (els.btnTutup) {
-            els.btnTutup.addEventListener('click', closeModalIzin);
-        }
+        if (els.btnTutup) els.btnTutup.addEventListener('click', closeModalIzin);
         if (els.modal) {
             els.modal.addEventListener('click', function(e) {
                 if (e.target === els.modal) closeModalIzin();
             });
         }
 
-        // ---- Form submission ----
+        // Submit Form Izin
         if (els.form) {
             els.form.addEventListener('submit', async function(e) {
                 e.preventDefault();
 
-                // Reset error
                 if (els.error) {
                     els.error.classList.add('hidden');
-                    els.error.textContent = '';
+                    els.error.innerHTML = '';
                 }
 
-                // Client-side validation
-                var tanggal = els.tanggal ? els.tanggal.value.trim() : '';
-                var keterangan = els.keterangan ? els.keterangan.value.trim() : '';
-                var statusVal = els.status ? els.status.value : '';
-                var errors = [];
-
-                if (!tanggal) errors.push('Tanggal harus diisi.');
-                if (!statusVal) errors.push('Tipe izin harus dipilih.');
-                if (!keterangan) errors.push('Keterangan harus diisi.');
-                if (keterangan.length > 1000) errors.push('Keterangan maksimal 1000 karakter.');
-
-                if (errors.length > 0) {
-                    if (els.error) {
-                        els.error.textContent = errors.join(' ');
-                        els.error.classList.remove('hidden');
-                    }
-                    return;
-                }
-
-                // Disable button
+                // Loading State
                 if (els.btnKirim) {
                     els.btnKirim.disabled = true;
                     els.btnKirim.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Mengirim...';
                 }
 
                 try {
-                    var formData = new FormData();
-                    formData.append('_token', '{{ csrf_token() }}');
-                    formData.append('tanggal', tanggal);
-                    formData.append('status', statusVal);
-                    formData.append('keterangan', keterangan);
-
-                    if (els.bukti && els.bukti.files && els.bukti.files.length > 0) {
-                        var file = els.bukti.files[0];
-                        var allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
-                        if (!allowedTypes.includes(file.type)) {
-                            throw new Error('Format file tidak didukung. Gunakan JPG, PNG, atau PDF.');
-                        }
-                        if (file.size > 2 * 1024 * 1024) {
-                            throw new Error('Ukuran file maksimal 2MB.');
-                        }
-                        formData.append('bukti_dokumen', file);
-                    }
+                    var formData = new FormData(els.form);
 
                     var res = await fetch('{{ route("guru.absensi.ajukan-izin") }}', {
                         method: 'POST',
@@ -477,33 +420,30 @@
 
                     var result = await res.json();
 
+                    // Tanggani Error dari Validation Request Laravel (Status 422)
                     if (!res.ok) {
+                        if (res.status === 422 && result.errors) {
+                            var errorMessages = Object.values(result.errors).flat().join('<br>');
+                            throw new Error(errorMessages);
+                        }
                         throw new Error(result.message || 'Gagal mengirim pengajuan.');
                     }
 
-                    // Success
+                    // Success Handling
                     if (els.btnKirim) {
                         els.btnKirim.innerHTML = '<i class="fa-solid fa-check"></i> Berhasil Dikirim';
                         els.btnKirim.className = 'w-full py-3.5 px-4 rounded-xl font-bold shadow-sm transition-all flex items-center justify-center gap-2 bg-emerald-500 text-white cursor-pointer text-sm';
                     }
 
-                    // Close modal after delay
                     setTimeout(function() {
                         closeModalIzin();
-                        // Show toast via session
-                        try {
-                            sessionStorage.setItem('absensi_flash', JSON.stringify({
-                                type: 'success',
-                                message: result.message || 'Pengajuan berhasil dikirim.'
-                            }));
-                        } catch(e) {}
                         window.location.reload();
-                    }, 1500);
+                    }, 1200);
 
                 } catch (err) {
-                    console.error('Izin submission error:', err);
+                    console.error('Izin Error:', err);
                     if (els.error) {
-                        els.error.textContent = err.message || 'Terjadi kesalahan. Silakan coba lagi.';
+                        els.error.innerHTML = err.message || 'Terjadi kesalahan sistem.';
                         els.error.classList.remove('hidden');
                     }
                     if (els.btnKirim) {
@@ -514,28 +454,11 @@
             });
         }
 
-        // ---- Reset form when modal closes via backdrop click on body ----
-        document.addEventListener('click', function(e) {
-            if (els.modal && !els.modal.classList.contains('hidden')) {
-                // if clicking outside the modal content
-                if (e.target === els.modal) {
-                    // No reset, just close
-                }
-            }
-        });
-
-        // ---- Keyboard escape ----
+        // Keyboard Shortcut (ESC)
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
-                // Close izin modal if open
                 if (els.modal && !els.modal.classList.contains('hidden')) {
                     closeModalIzin();
-                }
-                // Camera modal is handled by absensi.js
-                var cameraModal = document.getElementById('camera-modal');
-                if (cameraModal && !cameraModal.classList.contains('hidden')) {
-                    var closeBtn = document.getElementById('modal-close');
-                    if (closeBtn) closeBtn.click();
                 }
             }
         });
@@ -543,4 +466,3 @@
     })();
 </script>
 @endsection
-

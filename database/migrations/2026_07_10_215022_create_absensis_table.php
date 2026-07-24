@@ -33,6 +33,24 @@ return new class extends Migration
             // Status Final Absensi Hari Ini
             $table->enum('status', ['hadir', 'terlambat', 'izin', 'sakit', 'cuti', 'tugas_luar', 'alpha'])->default('alpha');
             $table->text('keterangan')->nullable(); // Catatan tambahan (misal: alasan terlambat)
+            $table->string('bukti_dokumen')->nullable();
+
+            // Status approval pengajuan
+            $table->enum('status_persetujuan', [
+                'pending',
+                'disetujui',
+                'ditolak'
+            ])->nullable();;
+
+            // Admin yang menyetujui
+            $table->foreignId('approved_by')
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
+
+            // Waktu approval
+            $table->timestamp('approved_at')
+                ->nullable();
             $table->timestamps();
 
             // ANTI-BUG: Menjamin 1 Guru HANYA bisa punya 1 baris data per 1 tanggal.

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('jadwals', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('guru_id')
+             $table->foreignId('guru_id')
                 ->constrained('gurus')
                 ->cascadeOnDelete();
 
@@ -29,12 +29,13 @@ return new class extends Migration
             $table->time('jam_masuk');
             $table->time('jam_pulang');
 
-            $table->string('mata_pelajaran')->nullable();
-            $table->string('kelas')->nullable();
-            $table->string('ruangan')->nullable();
+            $table->foreignId('mapel_id')->constrained('mapels')->cascadeOnDelete();
+            $table->foreignId('kelas_id')->constrained('kelas')->cascadeOnDelete();
+            
 
             $table->boolean('is_active')->default(true);
             $table->timestamps();
+             $table->index(['guru_id', 'hari', 'is_active']);
         });
     }
 

@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title' ,'Tambah Jadwal')
+@section('title', 'Tambah Jadwal')
 
 @section('content')
 <div class="space-y-8">
@@ -45,7 +45,7 @@
                     <option value="" disabled selected class="text-[#626885]">-- Pilih Guru --</option>
                     @foreach($gurus as $guru)
                         <option value="{{ $guru->id }}" {{ old('guru_id') == $guru->id ? 'selected' : '' }}>
-                            {{ $guru->nama ?? $guru->user->name }}
+                            {{ $guru->nama ?? ($guru->user->name ?? '-') }}
                         </option>
                     @endforeach
                 </select>
@@ -66,43 +66,52 @@
                 </div>
                 <div>
                     <label class="block text-[#c2c6dc] font-semibold mb-2 text-xs uppercase tracking-wider flex items-center gap-2">
-                        <i class="fas fa-sign-in-alt text-[#7367f0]"></i> Jam Masuk <span class="text-[#ff9f43]">*</span>
+                        <i class="fas fa-sign-in-alt text-[#7367f0]"></i> Jam Mulai <span class="text-[#ff9f43]">*</span>
                     </label>
                     <input type="time" name="jam_masuk" value="{{ old('jam_masuk') }}" class="w-full bg-[#10163a] border border-[#242b4d] text-white rounded-xl p-3 text-sm focus:ring-2 focus:ring-[#7367f0] focus:border-transparent outline-hidden transition" required>
                 </div>
                 <div>
                     <label class="block text-[#c2c6dc] font-semibold mb-2 text-xs uppercase tracking-wider flex items-center gap-2">
-                        <i class="fas fa-sign-out-alt text-[#7367f0]"></i> Jam Pulang <span class="text-[#ff9f43]">*</span>
+                        <i class="fas fa-sign-out-alt text-[#7367f0]"></i> Jam Selesai <span class="text-[#ff9f43]">*</span>
                     </label>
                     <input type="time" name="jam_pulang" value="{{ old('jam_pulang') }}" class="w-full bg-[#10163a] border border-[#242b4d] text-white rounded-xl p-3 text-sm focus:ring-2 focus:ring-[#7367f0] focus:border-transparent outline-hidden transition" required>
                 </div>
             </div>
 
-            {{-- Mata Pelajaran --}}
-            <div>
-                <label class="block text-[#c2c6dc] font-semibold mb-2 text-xs uppercase tracking-wider flex items-center gap-2">
-                    <i class="fas fa-book text-[#7367f0]"></i> Mata Pelajaran
-                </label>
-                <input type="text" name="mata_pelajaran" value="{{ old('mata_pelajaran') }}" class="w-full bg-[#10163a] border border-[#242b4d] text-white rounded-xl p-3 text-sm focus:ring-2 focus:ring-[#7367f0] focus:border-transparent outline-hidden transition placeholder-[#626885]" placeholder="Contoh: Pemrograman Web / Bahasa Inggris">
-            </div>
-
-            {{-- Grid Kelas & Ruangan --}}
+            {{-- Grid Mata Pelajaran & Kelas --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {{-- Select Mata Pelajaran (mapel_id) --}}
                 <div>
                     <label class="block text-[#c2c6dc] font-semibold mb-2 text-xs uppercase tracking-wider flex items-center gap-2">
-                        <i class="fas fa-graduation-cap text-[#7367f0]"></i> Kelas
+                        <i class="fas fa-book text-[#7367f0]"></i> Mata Pelajaran <span class="text-[#ff9f43]">*</span>
                     </label>
-                    <input type="text" name="kelas" value="{{ old('kelas') }}" class="w-full bg-[#10163a] border border-[#242b4d] text-white rounded-xl p-3 text-sm focus:ring-2 focus:ring-[#7367f0] focus:border-transparent outline-hidden transition placeholder-[#626885]" placeholder="Contoh: XII RPL 2">
+                    <select name="mapel_id" class="w-full bg-[#10163a] border border-[#242b4d] text-white rounded-xl p-3 text-sm focus:ring-2 focus:ring-[#7367f0] focus:border-transparent outline-hidden transition cursor-pointer" required>
+                        <option value="" disabled selected class="text-[#626885]">-- Pilih Mata Pelajaran --</option>
+                        @foreach($mapels as $mapel)
+                            <option value="{{ $mapel->id }}" {{ old('mapel_id') == $mapel->id ? 'selected' : '' }}>
+                                {{ $mapel->nama_mapel ?? $mapel->nama_mapel }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
+
+                {{-- Select Kelas (kelas_id) --}}
                 <div>
                     <label class="block text-[#c2c6dc] font-semibold mb-2 text-xs uppercase tracking-wider flex items-center gap-2">
-                        <i class="fas fa-door-open text-[#7367f0]"></i> Ruangan
+                        <i class="fas fa-graduation-cap text-[#7367f0]"></i> Kelas <span class="text-[#ff9f43]">*</span>
                     </label>
-                    <input type="text" name="ruangan" value="{{ old('ruangan') }}" class="w-full bg-[#10163a] border border-[#242b4d] text-white rounded-xl p-3 text-sm focus:ring-2 focus:ring-[#7367f0] focus:border-transparent outline-hidden transition placeholder-[#626885]" placeholder="Contoh: Lab Komputer 1">
+                    <select name="kelas_id" class="w-full bg-[#10163a] border border-[#242b4d] text-white rounded-xl p-3 text-sm focus:ring-2 focus:ring-[#7367f0] focus:border-transparent outline-hidden transition cursor-pointer" required>
+                        <option value="" disabled selected class="text-[#626885]">-- Pilih Kelas --</option>
+                        @foreach($kelases as $kelas)
+                            <option value="{{ $kelas->id }}" {{ old('kelas_id') == $kelas->id ? 'selected' : '' }}>
+                                {{ $kelas->nama_kelas ?? $kelas->nama_kelas }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
 
-            {{-- Status Aktif (Toggle Switch Vuesax) --}}
+            {{-- Status Aktif --}}
             <div class="pt-2">
                 <div class="flex items-center justify-between p-3.5 bg-[#10163a] border border-[#242b4d] rounded-xl max-w-xs">
                     <label class="text-sm font-semibold text-[#c2c6dc] flex items-center gap-2.5 cursor-pointer select-none" for="is_active">

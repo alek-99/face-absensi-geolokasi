@@ -166,6 +166,14 @@ class AbsensiController extends Controller
         $data = $validator->validated();
         $targetTanggal = Carbon::parse($data['tanggal'])->format('Y-m-d');
 
+        // Pastikan guru memiliki jadwal pada hari pengajuan izin
+        $jadwals = $this->absensiService->cekJadwalHariIni($guru, Carbon::parse($targetTanggal));
+        if ($jadwals->isEmpty()) {
+            return response()->json([
+                'message' => 'Anda tidak memiliki jadwal mengajar pada tanggal tersebut.'
+            ], 422);
+        }
+
         $sudahAjukanHariIni = Absensi::where('guru_id', $guru->id)
             ->where('tanggal', $targetTanggal)
             ->whereIn('status', ['izin', 'sakit', 'cuti', 'tugas_luar'])

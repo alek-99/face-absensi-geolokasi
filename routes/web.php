@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\GuruController as AdminGuruController;
 use App\Http\Controllers\Admin\JadwalController as AdminJadwalController;
 use App\Http\Controllers\Admin\KelasController;
 use App\Http\Controllers\Admin\KonfigurasiAbsenController;
+use App\Http\Controllers\Admin\MapelController;
 use App\Http\Controllers\Admin\NotifikasiController as AdminNotifikasiController;
 use App\Http\Controllers\Admin\PengaturanController;
 use App\Http\Controllers\Admin\ReportSettingController;
@@ -87,6 +88,8 @@ Route::middleware(['auth', 'role:admin'])->name('admin.')->prefix('admin')->grou
     Route::apiresource('/kelas', KelasController::class);
 //  // Gantikan 5 baris Route::get, post, put, delete untuk siswa dengan ini:
     Route::resource('siswa', SiswaController::class);
+    // Route Mapel
+    Route::resource('/mapel',MapelController::class);
     // Konfigurasi Absen & Reports
     Route::get('/konfigurasi-absen', [KonfigurasiAbsenController::class, 'index'])->name('pengaturan.absensi');
     Route::put('/konfigurasi-absen', [KonfigurasiAbsenController::class, 'update'])->name('konfigurasi-absen.update');

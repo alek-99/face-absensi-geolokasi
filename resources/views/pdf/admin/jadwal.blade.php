@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Jadwal Pelajaran</title>
+        <link rel="icon" href="{{ asset('storage/images/logo.png') }}">
     <style>
         body {
             font-family: "{{ $setting->font_family }}", sans-serif;
@@ -187,11 +188,10 @@
             <tr>
                 <th width="5%">No</th>
                 <th width="12%">Hari</th>
-                <th width="15%">Waktu</th>
+                <th width="18%">Waktu</th>
                 <th width="25%">Guru</th>
                 <th width="25%">Mata Pelajaran</th>
-                <th width="10%">Kelas</th>
-                <th width="8%">Ruang</th>
+                <th width="15%">Kelas</th>
             </tr>
         </thead>
         <tbody>
@@ -203,14 +203,13 @@
                         {{ \Carbon\Carbon::parse($jadwal->jam_masuk)->format('H:i') }} - 
                         {{ \Carbon\Carbon::parse($jadwal->jam_pulang)->format('H:i') }}
                     </td>
-                    <td>{{ $jadwal->guru->user->name ?? $jadwal->guru->nama ?? '-' }}</td>
-                    <td>{{ $jadwal->mata_pelajaran ?? '-' }}</td>
-                    <td class="text-center">{{ $jadwal->kelas ?? '-' }}</td>
-                    <td class="text-center">{{ $jadwal->ruangan ?? '-' }}</td>
+                    <td>{{ $jadwal->guru->nama ?? $jadwal->guru->user->name ?? '-' }}</td>
+                    <td>{{ $jadwal->mapel->nama_mapel ?? '-' }}</td>
+                    <td class="text-center">{{ $jadwal->kelas->nama_kelas ?? '-' }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" class="text-center">Belum ada data jadwal pelajaran aktif.</td>
+                    <td colspan="6" class="text-center">Belum ada data jadwal pelajaran aktif.</td>
                 </tr>
             @endforelse
         </tbody>

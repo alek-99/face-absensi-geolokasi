@@ -122,7 +122,7 @@
                         Data Kelas
                     </a>
 
-                    <!-- Data Siswa (BARU) -->
+                    <!-- Data Siswa  -->
                     <a href="{{ route('admin.siswa.index') }}" 
                        class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 group 
                        {{ request()->routeIs('admin.siswa.*') ? 'text-white bg-gradient-to-r from-[#7367f0] to-[#9e95f5] shadow-lg shadow-[#7367f0]/20' : 'text-[#c2c6dc] hover:text-white hover:bg-[#242b4d]' }}">
@@ -130,8 +130,8 @@
                         Data Siswa
                     </a>
 
-                    <!-- Mata Pelajaran (BARU) -->
-                    <a href="#" 
+                    <!-- Mata Pelajaran  -->
+                    <a href="{{route('admin.mapel.index')}}" 
                        class="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 group 
                        {{ request()->routeIs('admin.mapel.*') ? 'text-white bg-gradient-to-r from-[#7367f0] to-[#9e95f5] shadow-lg shadow-[#7367f0]/20' : 'text-[#c2c6dc] hover:text-white hover:bg-[#242b4d]' }}">
                         <i class="fa-solid fa-book-bookmark mr-4 text-base transition-colors {{ request()->routeIs('admin.mapel.*') ? 'text-white' : 'text-[#626885] group-hover:text-[#7367f0]' }}"></i>

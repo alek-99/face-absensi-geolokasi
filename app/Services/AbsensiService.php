@@ -35,7 +35,7 @@ class AbsensiService
         return KonfigurasiAbsen::first() ?? KonfigurasiAbsen::create([]);
     }
 
-    public function cekJadwalHariIni(Guru $guru, ?Carbon $tanggal = null): ?Jadwal
+    public function cekJadwalHariIni(Guru $guru, ?Carbon $tanggal = null)
     {
         $tanggal ??= now();
         $hari = $this->namaHariIndonesia($tanggal);
@@ -43,7 +43,8 @@ class AbsensiService
         return Jadwal::where('guru_id', $guru->id)
             ->where('hari', $hari)
             ->where('is_active', true)
-            ->first();
+            ->orderBy('jam_masuk', 'asc')
+            ->get();
     }
 
     public function namaHariIndonesia(Carbon $date): string
@@ -147,8 +148,9 @@ class AbsensiService
             $now = now();
             $today = $now->toDateString();
 
-            $jadwal = $this->cekJadwalHariIni($guru, $now);
-            if (!$jadwal) {
+            // 1. Cek Jadwal berdasarkan hari ini
+            $jadwals = $this->cekJadwalHariIni($guru, $now);
+            if ($jadwals->isEmpty()) {
                 throw new AbsensiException('Anda tidak memiliki jadwal mengajar hari ini, sehingga tidak bisa absen masuk.');
             }
 
@@ -172,6 +174,7 @@ class AbsensiService
             $sekolah = $this->getSekolah();
             $konfig = $this->getKonfigurasi();
 
+            // Mengambil jam_masuk dari tabel Sekolah sebagai acuan jam masuk resmi
             $jamMasukSekolah = Carbon::parse($sekolah->jam_masuk)->setDateFrom($now);
             $bukaAbsen = $jamMasukSekolah->copy()->subMinutes($konfig->buka_absen_masuk_menit);
             $batasTepatWaktu = $jamMasukSekolah->copy()->addMinutes($konfig->toleransi_terlambat_menit);
@@ -211,7 +214,7 @@ class AbsensiService
             return ['absensi' => $absensi->fresh(), 'status' => $status, 'now' => $now];
         });
 
-        // Pengiriman notifikasi dijalankan setelah DB Commit
+        // Pengiriman notifikasi
         $timeStr = $result['now']->format('H:i');
         $title = 'Absen Masuk Tercatat ✅';
         $body = "Absen masuk Anda tercatat pada pukul *{$timeStr}* (Status: {$result['status']}).";
@@ -225,6 +228,12 @@ class AbsensiService
         $result = DB::transaction(function () use ($guru, $data) {
             $now = now();
             $today = $now->toDateString();
+
+            // Cek Jadwal Hari Ini
+            $jadwals = $this->cekJadwalHariIni($guru, $now);
+            if ($jadwals->isEmpty()) {
+                throw new AbsensiException('Anda tidak memiliki jadwal mengajar hari ini.');
+            }
 
             $absensi = Absensi::where('guru_id', $guru->id)
                 ->where('tanggal', $today)
@@ -245,6 +254,7 @@ class AbsensiService
             $sekolah = $this->getSekolah();
             $konfig = $this->getKonfigurasi();
 
+            // Mengambil jam_keluar dari tabel Sekolah sebagai acuan jam pulang resmi
             $jamKeluarSekolah = Carbon::parse($sekolah->jam_keluar)->setDateFrom($now);
             $bukaAbsenPulang = $jamKeluarSekolah->copy()->subMinutes($konfig->buka_absen_pulang_menit);
 
@@ -280,7 +290,7 @@ class AbsensiService
             return ['absensi' => $absensi->fresh(), 'now' => $now];
         });
 
-        // Pengiriman notifikasi dijalankan setelah DB Commit
+        // Pengiriman notifikasi
         $timeStr = $result['now']->format('H:i');
         $title = 'Absen Pulang Tercatat ✅';
         $body = "Absen pulang Anda tercatat pada pukul *{$timeStr}*. Terima kasih.";
@@ -317,6 +327,7 @@ class AbsensiService
         $sekolah = $this->getSekolah();
         $konfig = $this->getKonfigurasi();
 
+        // Menggunakan jam_masuk & jam_keluar dari tabel sekolah untuk time windows
         $jamMasukSekolah = Carbon::parse($sekolah->jam_masuk)->setDateFrom($now);
         $bukaAbsenMasuk = $jamMasukSekolah->copy()->subMinutes($konfig->buka_absen_masuk_menit);
         $batasTepatWaktu = $jamMasukSekolah->copy()->addMinutes($konfig->toleransi_terlambat_menit);
@@ -337,8 +348,8 @@ class AbsensiService
             'jadwal' => $jadwals->map(function ($jadwal) {
                 return [
                     'id' => $jadwal->id,
-                    'mata_pelajaran' => $jadwal->mata_pelajaran,
-                    'kelas' => $jadwal->kelas,
+                    'mapel_id' => $jadwal->mapel_id,
+                    'kelas_id' => $jadwal->kelas_id,
                     'ruangan' => $jadwal->ruangan,
                     'jam_masuk' => $jadwal->jam_masuk,
                     'jam_pulang' => $jadwal->jam_pulang,

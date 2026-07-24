@@ -223,7 +223,7 @@ class SiswaController extends Controller
             'kelas_id'       => ($isUpdate ? 'sometimes|' : '') . 'required|exists:kelas,id',
             'alamat'         => 'nullable|string',
             'no_hp'          => 'nullable|string|max:15',
-            'jenis_kelamin'  => ($isUpdate ? 'sometimes|' : '') . 'required|in:L,P',
+            'jenis_kelamin'  => ($isUpdate ? 'sometimes|' : '') . 'required|in:laki-laki,perempuan',
             'tempat_lahir'   => 'nullable|string|max:100',
             'tanggal_lahir'  => 'nullable|date',
             'agama'          => 'nullable|string|max:20',

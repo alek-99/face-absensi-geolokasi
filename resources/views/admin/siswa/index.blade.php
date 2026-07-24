@@ -1,596 +1,584 @@
-@extends('layouts.admin') 
-@section('title', 'Daftar Siswa')
+@extends('layouts.admin')
+
+@section('title', 'Manajemen Data Siswa')
+
 
 @section('content')
-<div class="space-y-6">
-    <!-- Header Page -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-slate-800/80 p-6 rounded-2xl border border-slate-700/60 shadow-xl backdrop-blur-md">
+<div class="space-y-8">
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
-            <h1 class="text-2xl font-bold text-slate-100 flex items-center gap-3">
-                <span class="p-2.5 bg-indigo-500/10 text-indigo-400 rounded-xl border border-indigo-500/20">
-                    <i class="fa-solid fa-user-graduate text-xl"></i>
-                </span>
-                Manajemen Data Siswa
-            </h1>
-            <p class="text-sm text-slate-400 mt-1">Kelola data siswa, pencarian, dan pendaftaran siswa baru secara efisien.</p>
+            <h1 class="text-2xl font-bold text-white">Data Siswa</h1>
+            <p class="text-sm text-gray-400">Kelola seluruh data siswa, pencarian, serta pembaruan profil.</p>
         </div>
-        <button onclick="openModal('create')" class="inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-medium px-5 py-2.5 rounded-xl shadow-lg shadow-indigo-600/20 transition-all duration-200 transform hover:-translate-y-0.5 cursor-pointer">
-            <i class="fa-solid fa-plus mr-2 text-sm"></i>Tambah Siswa
+        <button onclick="openModal('create')" class="inline-flex items-center justify-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-sm transition-all shadow-md hover:shadow-indigo-500/20">
+            <i class="fa-solid fa-plus mr-2"></i> Tambah Siswa
         </button>
     </div>
 
     <!-- Filter & Search Bar -->
-    <div class="bg-slate-800/60 p-4 rounded-xl shadow-md border border-slate-700/50 backdrop-blur-sm">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="relative">
-                <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
-                    <i class="fa-solid fa-magnifying-glass text-sm"></i>
-                </span>
-                <input type="text" id="searchInput" oninput="debounceFetchData()" placeholder="Cari Nama, NISN, NIK, NIPD..." class="w-full pl-10 pr-4 py-2.5 bg-slate-900/90 border border-slate-700 text-slate-200 placeholder-slate-500 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition text-sm">
+    <div class="bg-gray-800 rounded-xl p-4 border border-gray-700/60 mb-6 shadow-lg">
+        <form id="filterForm" class="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <!-- Search -->
+            <div class="md:col-span-6 relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </div>
+                <input type="text" id="searchInput" name="search" value="{{ request('search') }}" placeholder="Cari Nama, NISN, NIK, NIPD..." 
+                    class="w-full pl-10 pr-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-gray-500">
             </div>
-            <div>
-                <select id="filterKelas" onchange="fetchSiswa(1)" class="w-full py-2.5 px-3 bg-slate-900/90 border border-slate-700 text-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition text-sm">
+
+            <!-- Filter Kelas -->
+            <div class="md:col-span-4">
+                <select id="filterKelas" name="kelas_id" class="w-full py-2 px-3 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                     <option value="">-- Semua Kelas --</option>
                     @foreach($kelas as $k)
-                        <option value="{{ $k->id }}">{{ $k->nama_kelas }}</option>
+                        <option value="{{ $k->id }}" {{ request('kelas_id') == $k->id ? 'selected' : '' }}>{{ $k->nama_kelas ?? $k->nama }}</option>
                     @endforeach
                 </select>
             </div>
-            <div>
-                <select id="perPage" onchange="fetchSiswa(1)" class="w-full py-2.5 px-3 bg-slate-900/90 border border-slate-700 text-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 outline-none transition text-sm">
-                    <option value="10">10 data per halaman</option>
-                    <option value="25">25 data per halaman</option>
-                    <option value="50">50 data per halaman</option>
-                </select>
+
+            <!-- Action Filter -->
+            <div class="md:col-span-2 flex gap-2">
+                <button type="submit" class="w-full py-2 px-4 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center">
+                    <i class="fa-solid fa-filter mr-2"></i> Filter
+                </button>
+                <a href="{{ route('admin.siswa.index') }}" class="py-2 px-3 bg-gray-800 hover:bg-gray-700 border border-gray-600 text-gray-300 text-sm font-medium rounded-lg transition-colors flex items-center justify-center" title="Reset Filter">
+                    <i class="fa-solid fa-rotate"></i>
+                </a>
             </div>
-        </div>
+        </form>
     </div>
 
-    <!-- Table Container -->
-    <div class="bg-slate-800/80 rounded-xl shadow-xl border border-slate-700/60 overflow-hidden backdrop-blur-md">
-        <div class="overflow-x-auto relative min-h-[300px]">
-            <!-- Loading Overlay -->
-            <div id="tableLoader" class="absolute inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-10 hidden transition-opacity">
-                <div class="flex items-center space-x-3 px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl shadow-xl">
-                    <i class="fa-solid fa-circle-notch fa-spin text-indigo-400 text-lg"></i>
-                    <span class="text-sm font-medium text-slate-200">Memuat data...</span>
-                </div>
-            </div>
-
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-slate-900/80 border-b border-slate-700/80 text-xs font-semibold uppercase tracking-wider text-slate-400">
-                        <th class="py-3.5 px-4">No</th>
-                        <th class="py-3.5 px-4">Siswa</th>
-                        <th class="py-3.5 px-4">NISN / NIK</th>
-                        <th class="py-3.5 px-4">Kelas</th>
-                        <th class="py-3.5 px-4">L/P</th>
-                        <th class="py-3.5 px-4">No. HP</th>
-                        <th class="py-3.5 px-4 text-center">Aksi</th>
+    <!-- Table Section -->
+    <div class="bg-gray-800 rounded-xl border border-gray-700/60 shadow-xl overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left text-gray-300">
+                <thead class="text-xs text-gray-400 uppercase bg-gray-900/80 border-b border-gray-700">
+                    <tr>
+                        <th scope="col" class="px-4 py-3 text-center">No</th>
+                        <th scope="col" class="px-4 py-3">Nama Lengkap</th>
+                        <th scope="col" class="px-4 py-3">NISN / NIK</th>
+                        <th scope="col" class="px-4 py-3">Kelas</th>
+                        <th scope="col" class="px-4 py-3">L/P</th>
+                        <th scope="col" class="px-4 py-3">No HP</th>
+                        <th scope="col" class="px-4 py-3 text-center">Aksi</th>
                     </tr>
                 </thead>
-                <tbody id="siswaTableBody" class="divide-y divide-slate-700/40 text-sm">
-                    <!-- Dynamic Data -->
+                <tbody id="siswaTableBody" class="divide-y divide-gray-700/60">
+                    <!-- Data di-render lewat AJAX atau Server Fallback -->
+                    <tr id="loadingRow" class="hidden">
+                        <td colspan="7" class="text-center py-8 text-gray-400">
+                            <i class="fa-solid fa-spinner fa-spin text-2xl text-indigo-500 mb-2"></i>
+                            <p>Memuat data...</p>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
 
-        <!-- Pagination -->
-        <div class="p-4 border-t border-slate-700/60 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-400 bg-slate-900/30">
-            <div id="paginationInfo" class="font-medium">Menampilkan 0 data</div>
-            <div class="flex gap-1 overflow-x-auto max-w-full py-1" id="paginationNav"></div>
+        <!-- Pagination Container -->
+        <div id="paginationContainer" class="p-4 border-t border-gray-700 bg-gray-900/40 flex flex-col md:flex-row items-center justify-between gap-4">
+            <!-- Rendered by JavaScript -->
         </div>
     </div>
 </div>
 
-<!-- ================= MODAL FORM (TAMBAH / EDIT) ================= -->
-<div id="formModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 transition-all">
-    <div class="bg-slate-800 rounded-2xl shadow-2xl border border-slate-700/80 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden transform transition-all scale-95 opacity-0 duration-200" id="formModalCard">
-        <!-- Header Modal (Fixed) -->
-        <div class="px-6 py-4 bg-slate-900 border-b border-slate-700/80 flex justify-between items-center shrink-0">
-            <h3 class="font-bold text-lg text-slate-100 flex items-center gap-2.5" id="modalFormTitle">
-                <i class="fa-solid fa-user-plus text-indigo-400"></i>
-                <span>Tambah Data Siswa</span>
-            </h3>
-            <button onclick="closeModal('formModal')" class="text-slate-400 hover:text-white hover:bg-slate-800 p-1.5 rounded-lg transition text-xl leading-none cursor-pointer">&times;</button>
+<!-- ========================================== -->
+<!-- MODAL FORM (TAMBAH & EDIT) -->
+<!-- ========================================== -->
+<div id="formModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="relative w-full max-w-4xl bg-gray-800 border border-gray-700 rounded-xl shadow-2xl overflow-hidden">
+        <!-- Header -->
+        <div class="flex items-center justify-between px-6 py-4 bg-gray-900 border-b border-gray-700">
+            <h3 id="modalTitle" class="text-lg font-semibold text-white">Tambah Data Siswa</h3>
+            <button onclick="closeModal('formModal')" class="text-gray-400 hover:text-white transition-colors">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
         </div>
-        
-        <!-- Form Area (Scrollable Inner Body) -->
-        <form id="siswaForm" onsubmit="submitForm(event)" class="flex flex-col overflow-hidden flex-1">
-            <div class="p-6 overflow-y-auto space-y-6 flex-1 custom-scrollbar">
-                <input type="hidden" id="siswaId">
-                
-                <!-- Section 1: Data Utama -->
-                <div>
-                    <h4 class="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                        <i class="fa-solid fa-id-card"></i> Informasi Identitas Utama
-                    </h4>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="md:col-span-3">
-                            <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Nama Lengkap <span class="text-rose-400">*</span></label>
-                            <input type="text" id="nama" name="nama" required class="w-full px-3.5 py-2 bg-slate-900/90 border border-slate-700 text-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 outline-none text-sm">
-                            <span class="text-xs text-rose-400 error-msg mt-0.5 block" id="err_nama"></span>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">NISN <span class="text-rose-400">*</span></label>
-                            <input type="text" id="nisn" name="nisn" required class="w-full px-3.5 py-2 bg-slate-900/90 border border-slate-700 text-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 outline-none text-sm">
-                            <span class="text-xs text-rose-400 error-msg mt-0.5 block" id="err_nisn"></span>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">NIK</label>
-                            <input type="text" id="nik" name="nik" class="w-full px-3.5 py-2 bg-slate-900/90 border border-slate-700 text-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 outline-none text-sm">
-                            <span class="text-xs text-rose-400 error-msg mt-0.5 block" id="err_nik"></span>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">NIPD</label>
-                            <input type="text" id="nipd" name="nipd" class="w-full px-3.5 py-2 bg-slate-900/90 border border-slate-700 text-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 outline-none text-sm">
-                            <span class="text-xs text-rose-400 error-msg mt-0.5 block" id="err_nipd"></span>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Kelas <span class="text-rose-400">*</span></label>
-                            <select id="kelas_id" name="kelas_id" required class="w-full px-3.5 py-2 bg-slate-900/90 border border-slate-700 text-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 outline-none text-sm">
-                                <option value="">-- Pilih Kelas --</option>
-                                @foreach($kelas as $k)
-                                    <option value="{{ $k->id }}">{{ $k->nama_kelas }}</option>
-                                @endforeach
-                            </select>
-                            <span class="text-xs text-rose-400 error-msg mt-0.5 block" id="err_kelas_id"></span>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Jenis Kelamin <span class="text-rose-400">*</span></label>
-                            <select id="jenis_kelamin" name="jenis_kelamin" required class="w-full px-3.5 py-2 bg-slate-900/90 border border-slate-700 text-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 outline-none text-sm">
-                                <option value="L">Laki-laki</option>
-                                <option value="P">Perempuan</option>
-                            </select>
-                            <span class="text-xs text-rose-400 error-msg mt-0.5 block" id="err_jenis_kelamin"></span>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">No HP / WhatsApp</label>
-                            <input type="text" id="no_hp" name="no_hp" class="w-full px-3.5 py-2 bg-slate-900/90 border border-slate-700 text-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 outline-none text-sm">
-                            <span class="text-xs text-rose-400 error-msg mt-0.5 block" id="err_no_hp"></span>
-                        </div>
-                    </div>
+
+        <!-- Body Form -->
+        <form id="siswaForm" onsubmit="submitForm(event)" class="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
+            <input type="hidden" id="siswa_id" name="id">
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Identitas Utama -->
+                <div class="md:col-span-3 border-b border-gray-700 pb-2">
+                    <h4 class="text-sm font-semibold text-indigo-400 uppercase tracking-wider">Identitas Utama</h4>
                 </div>
 
-                <hr class="border-slate-700/60">
-
-                <!-- Section 2: Informasi Pribadi & Orang Tua -->
                 <div>
-                    <h4 class="text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                        <i class="fa-solid fa-user"></i> Informasi Pribadi & Orang Tua
-                    </h4>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Tempat Lahir</label>
-                            <input type="text" id="tempat_lahir" name="tempat_lahir" class="w-full px-3.5 py-2 bg-slate-900/90 border border-slate-700 text-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 outline-none text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Tanggal Lahir</label>
-                            <input type="date" id="tanggal_lahir" name="tanggal_lahir" class="w-full px-3.5 py-2 bg-slate-900/90 border border-slate-700 text-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 outline-none text-sm [color-scheme:dark]">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Agama</label>
-                            <input type="text" id="agama" name="agama" class="w-full px-3.5 py-2 bg-slate-900/90 border border-slate-700 text-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 outline-none text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Sekolah Asal</label>
-                            <input type="text" id="sekolah_asal" name="sekolah_asal" class="w-full px-3.5 py-2 bg-slate-900/90 border border-slate-700 text-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 outline-none text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Nama Ayah</label>
-                            <input type="text" id="nama_ayah" name="nama_ayah" class="w-full px-3.5 py-2 bg-slate-900/90 border border-slate-700 text-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 outline-none text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Pekerjaan Ayah</label>
-                            <input type="text" id="pekerjaan_ayah" name="pekerjaan_ayah" class="w-full px-3.5 py-2 bg-slate-900/90 border border-slate-700 text-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 outline-none text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Nama Ibu</label>
-                            <input type="text" id="nama_ibu" name="nama_ibu" class="w-full px-3.5 py-2 bg-slate-900/90 border border-slate-700 text-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 outline-none text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Pekerjaan Ibu</label>
-                            <input type="text" id="pekerjaan_ibu" name="pekerjaan_ibu" class="w-full px-3.5 py-2 bg-slate-900/90 border border-slate-700 text-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 outline-none text-sm">
-                        </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Alamat Tempat Tinggal</label>
-                            <textarea id="alamat" name="alamat" rows="2" class="w-full px-3.5 py-2 bg-slate-900/90 border border-slate-700 text-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/50 outline-none text-sm resize-none"></textarea>
-                        </div>
-                    </div>
+                    <label class="block text-xs font-medium text-gray-300 mb-1">Nama Lengkap <span class="text-red-500">*</span></label>
+                    <input type="text" id="nama" name="nama" required class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
+                    <span class="text-red-400 text-xs error-text nama_error"></span>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-300 mb-1">NISN <span class="text-red-500">*</span></label>
+                    <input type="text" id="nisn" name="nisn" required class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
+                    <span class="text-red-400 text-xs error-text nisn_error"></span>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-300 mb-1">Kelas <span class="text-red-500">*</span></label>
+                    <select id="kelas_id" name="kelas_id" required class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
+                        <option value="">-- Pilih Kelas --</option>
+                        @foreach($kelas as $k)
+                            <option value="{{ $k->id }}">{{ $k->nama_kelas ?? $k->nama }}</option>
+                        @endforeach
+                    </select>
+                    <span class="text-red-400 text-xs error-text kelas_id_error"></span>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-300 mb-1">NIK</label>
+                    <input type="text" id="nik" name="nik" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
+                    <span class="text-red-400 text-xs error-text nik_error"></span>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-300 mb-1">NIPD</label>
+                    <input type="text" id="nipd" name="nipd" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-300 mb-1">Jenis Kelamin <span class="text-red-500">*</span></label>
+                    <select id="jenis_kelamin" name="jenis_kelamin" required class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
+                        <option value="laki-laki">Laki-laki</option>
+                        <option value="perempuan">Perempuan</option>
+                    </select>
+                </div>
+
+                <!-- Biodata & Kelahiran -->
+                <div class="md:col-span-3 border-b border-gray-700 pb-2 pt-2">
+                    <h4 class="text-sm font-semibold text-indigo-400 uppercase tracking-wider">Biodata & Kelahiran</h4>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-300 mb-1">Tempat Lahir</label>
+                    <input type="text" id="tempat_lahir" name="tempat_lahir" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-300 mb-1">Tanggal Lahir</label>
+                    <input type="date" id="tanggal_lahir" name="tanggal_lahir" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-300 mb-1">Agama</label>
+                    <input type="text" id="agama" name="agama" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-300 mb-1">No. HP/WA</label>
+                    <input type="text" id="no_hp" name="no_hp" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-300 mb-1">Sekolah Asal</label>
+                    <input type="text" id="sekolah_asal" name="sekolah_asal" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
+                </div>
+
+                <div class="md:col-span-3">
+                    <label class="block text-xs font-medium text-gray-300 mb-1">Alamat</label>
+                    <textarea id="alamat" name="alamat" rows="2" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500"></textarea>
+                </div>
+
+                <!-- Data Orang Tua -->
+                <div class="md:col-span-3 border-b border-gray-700 pb-2 pt-2">
+                    <h4 class="text-sm font-semibold text-indigo-400 uppercase tracking-wider">Data Orang Tua</h4>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-300 mb-1">Nama Ayah</label>
+                    <input type="text" id="nama_ayah" name="nama_ayah" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-300 mb-1">Pekerjaan Ayah</label>
+                    <input type="text" id="pekerjaan_ayah" name="pekerjaan_ayah" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
+                </div>
+
+                <div class="hidden md:block"></div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-300 mb-1">Nama Ibu</label>
+                    <input type="text" id="nama_ibu" name="nama_ibu" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-300 mb-1">Pekerjaan Ibu</label>
+                    <input type="text" id="pekerjaan_ibu" name="pekerjaan_ibu" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
                 </div>
             </div>
 
-            <!-- Modal Footer (Fixed at Bottom) -->
-            <div class="p-4 bg-slate-900 border-t border-slate-700/80 flex justify-end gap-3 shrink-0">
-                <button type="button" onclick="closeModal('formModal')" class="px-4 py-2 border border-slate-600 rounded-lg text-slate-300 hover:bg-slate-800 text-sm font-medium transition cursor-pointer">Batal</button>
-                <button type="submit" id="submitBtn" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium shadow-lg shadow-indigo-600/20 transition flex items-center gap-2 cursor-pointer">
-                    <span id="submitSpinner" class="hidden"><i class="fa-solid fa-circle-notch fa-spin"></i></span>
-                    <span id="submitBtnText">Simpan Data</span>
+            <!-- Footer Action -->
+            <div class="flex justify-end gap-3 pt-4 border-t border-gray-700">
+                <button type="button" onclick="closeModal('formModal')" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-200 text-sm font-medium rounded-lg transition-colors">
+                    Batal
+                </button>
+                <button type="submit" id="btnSave" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center">
+                    <i class="fa-solid fa-floppy-disk mr-2"></i> Simpan
                 </button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- ================= MODAL DETAIL SHOW ================= -->
-<div id="showModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 transition-all">
-    <div class="bg-slate-800 rounded-2xl shadow-2xl border border-slate-700/80 w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden transform transition-all scale-95 opacity-0 duration-200" id="showModalCard">
+<!-- ========================================== -->
+<!-- MODAL SHOW (DETAIL SISWA) -->
+<!-- ========================================== -->
+<div id="showModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="relative w-full max-w-3xl bg-gray-800 border border-gray-700 rounded-xl shadow-2xl overflow-hidden">
         <!-- Header -->
-        <div class="px-6 py-4 bg-slate-900 border-b border-slate-700/80 flex justify-between items-center shrink-0">
-            <h3 class="font-bold text-lg text-slate-100 flex items-center gap-2.5">
-                <i class="fa-solid fa-address-card text-emerald-400"></i>
-                <span>Detail Data Siswa</span>
-            </h3>
-            <button onclick="closeModal('showModal')" class="text-slate-400 hover:text-white hover:bg-slate-800 p-1.5 rounded-lg transition text-xl leading-none cursor-pointer">&times;</button>
-        </div>
-        
-        <!-- Detail Body (Scrollable) -->
-        <div class="p-6 overflow-y-auto flex-1 space-y-4" id="showModalBody">
-            <!-- Dynamic Content -->
+        <div class="flex items-center justify-between px-6 py-4 bg-gray-900 border-b border-gray-700">
+            <h3 class="text-lg font-semibold text-white">Detail Informasi Siswa</h3>
+            <button onclick="closeModal('showModal')" class="text-gray-400 hover:text-white transition-colors">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
         </div>
 
-        <!-- Footer -->
-        <div class="p-4 bg-slate-900 border-t border-slate-700/80 flex justify-end shrink-0">
-            <button type="button" onclick="closeModal('showModal')" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-sm font-medium transition cursor-pointer">Tutup</button>
+        <!-- Body Detail -->
+        <div class="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
+            <div class="flex items-center gap-4 bg-gray-900/60 p-4 rounded-lg border border-gray-700">
+                <div class="w-16 h-16 rounded-full bg-indigo-600/30 text-indigo-400 flex items-center justify-center text-2xl font-bold border border-indigo-500/30">
+                    <i class="fa-solid fa-user-graduate"></i>
+                </div>
+                <div>
+                    <h2 id="show_nama" class="text-xl font-bold text-white">-</h2>
+                    <p class="text-sm text-indigo-400" id="show_kelas">-</p>
+                    <p class="text-xs text-gray-400" id="show_nisn_nik">-</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div class="bg-gray-900/40 p-3 rounded-lg border border-gray-700/50">
+                    <span class="text-xs text-gray-400 block">NIPD</span>
+                    <span id="show_nipd" class="font-medium text-gray-200">-</span>
+                </div>
+                <div class="bg-gray-900/40 p-3 rounded-lg border border-gray-700/50">
+                    <span class="text-xs text-gray-400 block">Jenis Kelamin</span>
+                    <span id="show_jk" class="font-medium text-gray-200">-</span>
+                </div>
+                <div class="bg-gray-900/40 p-3 rounded-lg border border-gray-700/50">
+                    <span class="text-xs text-gray-400 block">TTL</span>
+                    <span id="show_ttl" class="font-medium text-gray-200">-</span>
+                </div>
+                <div class="bg-gray-900/40 p-3 rounded-lg border border-gray-700/50">
+                    <span class="text-xs text-gray-400 block">Agama</span>
+                    <span id="show_agama" class="font-medium text-gray-200">-</span>
+                </div>
+                <div class="bg-gray-900/40 p-3 rounded-lg border border-gray-700/50">
+                    <span class="text-xs text-gray-400 block">No. HP</span>
+                    <span id="show_nohp" class="font-medium text-gray-200">-</span>
+                </div>
+                <div class="bg-gray-900/40 p-3 rounded-lg border border-gray-700/50">
+                    <span class="text-xs text-gray-400 block">Sekolah Asal</span>
+                    <span id="show_sekolah_asal" class="font-medium text-gray-200">-</span>
+                </div>
+                <div class="md:col-span-2 bg-gray-900/40 p-3 rounded-lg border border-gray-700/50">
+                    <span class="text-xs text-gray-400 block">Alamat</span>
+                    <span id="show_alamat" class="font-medium text-gray-200">-</span>
+                </div>
+                <div class="bg-gray-900/40 p-3 rounded-lg border border-gray-700/50">
+                    <span class="text-xs text-gray-400 block">Ayah (Pekerjaan)</span>
+                    <span id="show_ayah" class="font-medium text-gray-200">-</span>
+                </div>
+                <div class="bg-gray-900/40 p-3 rounded-lg border border-gray-700/50">
+                    <span class="text-xs text-gray-400 block">Ibu (Pekerjaan)</span>
+                    <span id="show_ibu" class="font-medium text-gray-200">-</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-end p-4 border-t border-gray-700 bg-gray-900/50">
+            <button type="button" onclick="closeModal('showModal')" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-200 text-sm font-medium rounded-lg transition-colors">
+                Tutup
+            </button>
         </div>
     </div>
 </div>
 
-<!-- Custom Scrollbar & Utility CSS -->
-<style>
-    .custom-scrollbar::-webkit-scrollbar {
-        width: 6px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-        background: rgba(15, 23, 42, 0.6);
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: rgba(51, 65, 85, 0.8);
-        border-radius: 4px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: rgba(71, 85, 105, 1);
-    }
-</style>
 
-<!-- JavaScript Handlers -->
 <script>
-    const API_URL = "{{ route('admin.siswa.index') }}";
-    const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-    let debounceTimer;
+    const csrfToken = '{{ csrf_token() }}';
+    let currentUrl = '{{ route("admin.siswa.index") }}';
 
     document.addEventListener('DOMContentLoaded', () => {
-        fetchSiswa();
+        loadData(currentUrl);
+
+        // Event listener filter form
+        document.getElementById('filterForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const search = document.getElementById('searchInput').value;
+            const kelas_id = document.getElementById('filterKelas').value;
+            const url = new URL('{{ route("admin.siswa.index") }}');
+            if (search) url.searchParams.append('search', search);
+            if (kelas_id) url.searchParams.append('kelas_id', kelas_id);
+            
+            loadData(url.toString());
+        });
     });
 
-    async function fetchSiswa(page = 1) {
-        showLoader(true);
-        const search = document.getElementById('searchInput').value;
-        const kelasId = document.getElementById('filterKelas').value;
-        const perPage = document.getElementById('perPage').value;
-
-        const url = `${API_URL}?page=${page}&search=${encodeURIComponent(search)}&kelas_id=${kelasId}&per_page=${perPage}`;
-
+    // Fetch Data Siswa AJAX
+    async function loadData(url) {
+        showLoading(true);
         try {
-            const res = await fetch(url, { 
-                headers: { 
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                } 
+            const response = await fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
             });
-            const json = await res.json();
+            const result = await response.json();
 
-            if (json.status === 'success') {
-                renderTable(json.data.data, json.data.from);
-                renderPagination(json.data);
+            if (result.status === 'success') {
+                renderTable(result.data.data, result.data.from);
+                renderPagination(result.data);
             }
-        } catch (err) {
-            console.error("Gagal mengambil data:", err);
+        } catch (error) {
+            console.error("Error loading data:", error);
         } finally {
-            showLoader(false);
+            showLoading(false);
         }
     }
 
-    function debounceFetchData() {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => fetchSiswa(1), 400);
-    }
-
-    function showLoader(show) {
-        const loader = document.getElementById('tableLoader');
-        if (show) loader.classList.remove('hidden');
-        else loader.classList.add('hidden');
-    }
-
-    function renderTable(data, startingNumber) {
+    function renderTable(siswas, fromIndex) {
         const tbody = document.getElementById('siswaTableBody');
         tbody.innerHTML = '';
 
-        if (!data || data.length === 0) {
+        if (!siswas || siswas.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="7" class="py-12 text-center text-slate-500">
-                        <i class="fa-solid fa-folder-open text-3xl mb-2 text-slate-600 block"></i>
-                        Data siswa tidak ditemukan.
-                    </td>
+                    <td colspan="7" class="text-center py-8 text-gray-500">Tidak ada data siswa ditemukan.</td>
                 </tr>`;
             return;
         }
 
-        data.forEach((siswa, index) => {
-            const no = (startingNumber || 1) + index;
-            const namaKelas = siswa.kelas ? siswa.kelas.nama_kelas : '-';
-            const genderBadge = siswa.jenis_kelamin === 'L' 
-                ? `<span class="bg-blue-950/80 text-blue-400 border border-blue-800/80 px-2 py-0.5 rounded text-xs font-semibold">L</span>`
-                : `<span class="bg-pink-950/80 text-pink-400 border border-pink-800/80 px-2 py-0.5 rounded text-xs font-semibold">P</span>`;
-
-            tbody.innerHTML += `
-                <tr class="hover:bg-slate-700/30 transition border-b border-slate-700/40">
-                    <td class="py-3 px-4 font-medium text-slate-400">${no}</td>
-                    <td class="py-3 px-4 font-semibold text-slate-100">${siswa.nama}</td>
-                    <td class="py-3 px-4 text-xs">
-                        <div class="text-slate-300 font-medium"><i class="fa-solid fa-id-card text-slate-500 mr-1.5"></i>${siswa.nisn}</div>
-                        ${siswa.nik ? `<div class="text-slate-500 pl-5">${siswa.nik}</div>` : ''}
+        siswas.forEach((siswa, index) => {
+            const row = `
+                <tr class="hover:bg-gray-700/30 transition-colors">
+                    <td class="px-4 py-3 text-center text-gray-400 font-medium">${(fromIndex || 1) + index}</td>
+                    <td class="px-4 py-3 font-semibold text-white">${siswa.nama}</td>
+                    <td class="px-4 py-3">
+                        <div class="text-xs text-gray-200">NISN: ${siswa.nisn || '-'}</div>
+                        <div class="text-[11px] text-gray-400">NIK: ${siswa.nik || '-'}</div>
                     </td>
-                    <td class="py-3 px-4"><span class="bg-indigo-950/80 text-indigo-300 border border-indigo-800/80 px-2.5 py-1 rounded-md text-xs font-medium">${namaKelas}</span></td>
-                    <td class="py-3 px-4">${genderBadge}</td>
-                    <td class="py-3 px-4 text-slate-300">${siswa.no_hp || '-'}</td>
-                    <td class="py-3 px-4 text-center space-x-1">
-                        <button onclick="showSiswa(${siswa.id})" title="Detail" class="p-2 text-emerald-400 hover:bg-emerald-950/50 rounded-lg transition cursor-pointer"><i class="fa-solid fa-eye"></i></button>
-                        <button onclick="editSiswa(${siswa.id})" title="Edit" class="p-2 text-amber-400 hover:bg-amber-950/50 rounded-lg transition cursor-pointer"><i class="fa-solid fa-pen-to-square"></i></button>
-                        <button onclick="deleteSiswa(${siswa.id})" title="Hapus" class="p-2 text-rose-400 hover:bg-rose-950/50 rounded-lg transition cursor-pointer"><i class="fa-solid fa-trash"></i></button>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-md text-xs font-medium">
+                            ${siswa.kelas ? (siswa.kelas.nama_kelas || siswa.kelas.nama) : '-'}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 uppercase text-xs">${siswa.jenis_kelamin === 'laki-laki' ? 'L' : 'P'}</td>
+                    <td class="px-4 py-3 text-xs text-gray-300">${siswa.no_hp || '-'}</td>
+                    <td class="px-4 py-3 text-center">
+                        <div class="flex items-center justify-center gap-2">
+                            <button onclick="showDetail(${siswa.id})" class="p-2 bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white rounded-lg transition-colors" title="Detail">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                            <button onclick="editSiswa(${siswa.id})" class="p-2 bg-amber-600/20 text-amber-400 hover:bg-amber-600 hover:text-white rounded-lg transition-colors" title="Edit">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button onclick="deleteSiswa(${siswa.id})" class="p-2 bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white rounded-lg transition-colors" title="Hapus">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `;
+            tbody.insertAdjacentHTML('beforeend', row);
         });
     }
 
-    function renderPagination(meta) {
-        const info = document.getElementById('paginationInfo');
-        const nav = document.getElementById('paginationNav');
-        info.innerText = `Menampilkan ${meta.from || 0} - ${meta.to || 0} dari total ${meta.total} siswa`;
-        nav.innerHTML = '';
+    function renderPagination(data) {
+        const container = document.getElementById('paginationContainer');
+        if (!data.links || data.links.length <= 3) {
+            container.innerHTML = `<span class="text-xs text-gray-400">Menampilkan ${data.total} total data</span>`;
+            return;
+        }
 
-        if (!meta.links) return;
-
-        meta.links.forEach(link => {
+        let linksHtml = '';
+        data.links.forEach(link => {
             if (link.url) {
-                const pageNum = new URL(link.url).searchParams.get('page');
-                const isActive = link.active ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-700/80 hover:bg-slate-600 text-slate-300';
-                nav.innerHTML += `<button onclick="fetchSiswa(${pageNum})" class="px-3 py-1.5 text-xs font-medium rounded-lg transition ${isActive} cursor-pointer">${link.label}</button>`;
+                const activeClass = link.active ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700';
+                linksHtml += `<button onclick="loadData('${link.url}')" class="px-3 py-1 text-xs rounded-md border border-gray-700 ${activeClass} transition-colors">${link.label}</button>`;
             } else {
-                nav.innerHTML += `<span class="px-3 py-1.5 text-xs font-medium rounded-lg text-slate-600 bg-slate-800/40 cursor-not-allowed">${link.label}</span>`;
+                linksHtml += `<span class="px-3 py-1 text-xs rounded-md border border-gray-800 text-gray-600">${link.label}</span>`;
             }
         });
+
+        container.innerHTML = `
+            <div class="text-xs text-gray-400">
+                Menampilkan <span class="font-semibold text-white">${data.from || 0}</span> - <span class="font-semibold text-white">${data.to || 0}</span> dari <span class="font-semibold text-white">${data.total}</span> data
+            </div>
+            <div class="flex items-center gap-1">${linksHtml}</div>
+        `;
     }
 
-    function openModal(type) {
+    // Handlers Modal
+    function openModal(mode) {
         clearErrors();
-        if (type === 'create') {
-            document.getElementById('siswaForm').reset();
-            document.getElementById('siswaId').value = '';
-            document.getElementById('modalFormTitle').innerHTML = '<i class="fa-solid fa-user-plus text-indigo-400"></i><span>Tambah Data Siswa</span>';
-            
-            const modal = document.getElementById('formModal');
-            const card = document.getElementById('formModalCard');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                card.classList.remove('scale-95', 'opacity-0');
-                card.classList.add('scale-100', 'opacity-100');
-            }, 10);
+        document.getElementById('siswaForm').reset();
+        document.getElementById('siswa_id').value = '';
+        
+        if (mode === 'create') {
+            document.getElementById('modalTitle').innerText = 'Tambah Data Siswa Baru';
         }
+        document.getElementById('formModal').classList.remove('hidden');
     }
 
     function closeModal(modalId) {
-        const modal = document.getElementById(modalId);
-        const card = document.getElementById(modalId === 'formModal' ? 'formModalCard' : 'showModalCard');
-        
-        card.classList.remove('scale-100', 'opacity-100');
-        card.classList.add('scale-95', 'opacity-0');
-        setTimeout(() => {
-            modal.classList.add('hidden');
-        }, 150);
+        document.getElementById(modalId).classList.add('hidden');
     }
 
+    // Submit Store / Update
     async function submitForm(e) {
         e.preventDefault();
         clearErrors();
-        setBtnLoading(true);
 
-        const id = document.getElementById('siswaId').value;
-        const isEdit = Boolean(id);
-        const url = isEdit ? `${API_URL}/${id}` : API_URL;
-        const method = isEdit ? 'PUT' : 'POST';
+        const id = document.getElementById('siswa_id').value;
+        const isEdit = !!id;
+        const url = isEdit ? `{{ url('admin/siswa') }}/${id}` : '{{ route("admin.siswa.store") }}';
+        
+        const form = document.getElementById('siswaForm');
+        const formData = new FormData(form);
 
-        const formData = new FormData(document.getElementById('siswaForm'));
-        const payload = Object.fromEntries(formData.entries());
+        if (isEdit) {
+            formData.append('_method', 'PUT');
+        }
 
         try {
-            const res = await fetch(url, {
-                method: method,
+            const response = await fetch(url, {
+                method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': CSRF_TOKEN
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
                 },
-                body: JSON.stringify(payload)
+                body: formData
             });
 
-            const json = await res.json();
+            const result = await response.json();
 
-            if (res.status === 422) {
-                Object.keys(json.errors).forEach(key => {
-                    const errEl = document.getElementById(`err_${key}`);
-                    if (errEl) errEl.innerText = json.errors[key][0];
+            if (response.status === 422) {
+                // Validation error
+                Object.keys(result.errors).forEach(key => {
+                    const errorEl = document.querySelector(`.${key}_error`);
+                    if (errorEl) errorEl.innerText = result.errors[key][0];
                 });
-            } else if (json.status === 'success') {
+            } else if (result.status === 'success') {
                 closeModal('formModal');
-                fetchSiswa();
+                loadData(currentUrl);
+                alert(result.message);
             } else {
-                alert(json.message || 'Terjadi kesalahan server.');
+                alert(result.message || 'Terjadi kesalahan sistem.');
             }
-        } catch (err) {
-            console.error("Error submitting form:", err);
-        } finally {
-            setBtnLoading(false);
+        } catch (error) {
+            console.error('Submit error:', error);
         }
     }
 
-    function setBtnLoading(isLoading) {
-        const btn = document.getElementById('submitBtn');
-        const spinner = document.getElementById('submitSpinner');
-        const text = document.getElementById('submitBtnText');
-
-        if (isLoading) {
-            btn.disabled = true;
-            spinner.classList.remove('hidden');
-            text.innerText = 'Menyimpan...';
-        } else {
-            btn.disabled = false;
-            spinner.classList.add('hidden');
-            text.innerText = 'Simpan Data';
-        }
-    }
-
-    async function showSiswa(id) {
+    // Show Detail Modal
+    async function showDetail(id) {
         try {
-            const res = await fetch(`${API_URL}/${id}`, { 
-                headers: { 
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                } 
+            const response = await fetch(`{{ url('admin/siswa') }}/${id}`, {
+                headers: { 'Accept': 'application/json' }
             });
-            const json = await res.json();
+            const result = await response.json();
 
-            if (json.status === 'success') {
-                const data = json.data;
-                const container = document.getElementById('showModalBody');
-                container.innerHTML = `
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                        <div class="md:col-span-2 border-b border-slate-700/80 pb-3">
-                            <p class="text-xs text-slate-400 uppercase font-semibold">Nama Siswa</p>
-                            <p class="text-lg font-bold text-slate-100 mt-0.5">${data.nama}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-slate-400 uppercase font-semibold">NISN / NIK</p>
-                            <p class="font-medium text-slate-200 mt-0.5">${data.nisn || '-'} / ${data.nik || '-'}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-slate-400 uppercase font-semibold">Kelas</p>
-                            <p class="font-medium text-slate-200 mt-0.5">${data.kelas ? data.kelas.nama_kelas : '-'}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-slate-400 uppercase font-semibold">Jenis Kelamin</p>
-                            <p class="font-medium text-slate-200 mt-0.5">${data.jenis_kelamin === 'L' ? 'Laki-Laki' : 'Perempuan'}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-slate-400 uppercase font-semibold">No. HP / WA</p>
-                            <p class="font-medium text-slate-200 mt-0.5">${data.no_hp || '-'}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-slate-400 uppercase font-semibold">Tempat, Tanggal Lahir</p>
-                            <p class="font-medium text-slate-200 mt-0.5">${data.tempat_lahir || '-'}${data.tanggal_lahir ? ', ' + data.tanggal_lahir : ''}</p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-slate-400 uppercase font-semibold">Agama</p>
-                            <p class="font-medium text-slate-200 mt-0.5">${data.agama || '-'}</p>
-                        </div>
-                        <div class="md:col-span-2 border-t border-slate-700/80 pt-3">
-                            <p class="text-xs text-indigo-400 uppercase font-semibold mb-1">Informasi Orang Tua</p>
-                            <p class="font-medium text-slate-200">Ayah: ${data.nama_ayah || '-'} <span class="text-slate-400 text-xs">(${data.pekerjaan_ayah || '-'})</span></p>
-                            <p class="font-medium text-slate-200 mt-1">Ibu: ${data.nama_ibu || '-'} <span class="text-slate-400 text-xs">(${data.pekerjaan_ibu || '-'})</span></p>
-                        </div>
-                        <div class="md:col-span-2 border-t border-slate-700/80 pt-3">
-                            <p class="text-xs text-slate-400 uppercase font-semibold">Alamat</p>
-                            <p class="font-medium text-slate-200 mt-0.5">${data.alamat || '-'}</p>
-                        </div>
-                    </div>
-                `;
+            if (result.status === 'success') {
+                const d = result.data;
+                document.getElementById('show_nama').innerText = d.nama || '-';
+                document.getElementById('show_kelas').innerText = d.kelas ? (d.kelas.nama_kelas || d.kelas.nama) : '-';
+                document.getElementById('show_nisn_nik').innerText = `NISN: ${d.nisn || '-'} | NIK: ${d.nik || '-'}`;
+                document.getElementById('show_nipd').innerText = d.nipd || '-';
+                document.getElementById('show_jk').innerText = d.jenis_kelamin || '-';
+                document.getElementById('show_ttl').innerText = `${d.tempat_lahir || '-'}, ${d.tanggal_lahir || '-'}`;
+                document.getElementById('show_agama').innerText = d.agama || '-';
+                document.getElementById('show_nohp').innerText = d.no_hp || '-';
+                document.getElementById('show_sekolah_asal').innerText = d.sekolah_asal || '-';
+                document.getElementById('show_alamat').innerText = d.alamat || '-';
+                document.getElementById('show_ayah').innerText = `${d.nama_ayah || '-'} (${d.pekerjaan_ayah || '-'})`;
+                document.getElementById('show_ibu').innerText = `${d.nama_ibu || '-'} (${d.pekerjaan_ibu || '-'})`;
 
-                const modal = document.getElementById('showModal');
-                const card = document.getElementById('showModalCard');
-                modal.classList.remove('hidden');
-                setTimeout(() => {
-                    card.classList.remove('scale-95', 'opacity-0');
-                    card.classList.add('scale-100', 'opacity-100');
-                }, 10);
+                document.getElementById('showModal').classList.remove('hidden');
             }
         } catch (err) {
-            console.error("Gagal mengambil detail:", err);
+            console.error(err);
         }
     }
 
+    // Edit Siswa Mode
     async function editSiswa(id) {
-        clearErrors();
         try {
-            const res = await fetch(`${API_URL}/${id}`, { 
-                headers: { 
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                } 
+            const response = await fetch(`{{ url('admin/siswa') }}/${id}`, {
+                headers: { 'Accept': 'application/json' }
             });
-            const json = await res.json();
+            const result = await response.json();
 
-            if (json.status === 'success') {
-                const data = json.data;
-                document.getElementById('siswaId').value = data.id;
-                document.getElementById('nama').value = data.nama || '';
-                document.getElementById('nisn').value = data.nisn || '';
-                document.getElementById('nik').value = data.nik || '';
-                document.getElementById('nipd').value = data.nipd || '';
-                document.getElementById('kelas_id').value = data.kelas_id || '';
-                document.getElementById('jenis_kelamin').value = data.jenis_kelamin || 'L';
-                document.getElementById('no_hp').value = data.no_hp || '';
-                document.getElementById('tempat_lahir').value = data.tempat_lahir || '';
-                document.getElementById('tanggal_lahir').value = data.tanggal_lahir || '';
-                document.getElementById('agama').value = data.agama || '';
-                document.getElementById('sekolah_asal').value = data.sekolah_asal || '';
-                document.getElementById('nama_ayah').value = data.nama_ayah || '';
-                document.getElementById('pekerjaan_ayah').value = data.pekerjaan_ayah || '';
-                document.getElementById('nama_ibu').value = data.nama_ibu || '';
-                document.getElementById('pekerjaan_ibu').value = data.pekerjaan_ibu || '';
-                document.getElementById('alamat').value = data.alamat || '';
+            if (result.status === 'success') {
+                openModal('edit');
+                document.getElementById('modalTitle').innerText = 'Edit Data Siswa';
+                const d = result.data;
 
-                document.getElementById('modalFormTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-amber-400"></i><span>Edit Data Siswa</span>';
-                
-                const modal = document.getElementById('formModal');
-                const card = document.getElementById('formModalCard');
-                modal.classList.remove('hidden');
-                setTimeout(() => {
-                    card.classList.remove('scale-95', 'opacity-0');
-                    card.classList.add('scale-100', 'opacity-100');
-                }, 10);
+                document.getElementById('siswa_id').value = d.id;
+                document.getElementById('nama').value = d.nama || '';
+                document.getElementById('nisn').value = d.nisn || '';
+                document.getElementById('kelas_id').value = d.kelas_id || '';
+                document.getElementById('nik').value = d.nik || '';
+                document.getElementById('nipd').value = d.nipd || '';
+                document.getElementById('jenis_kelamin').value = d.jenis_kelamin || 'laki-laki';
+                document.getElementById('tempat_lahir').value = d.tempat_lahir || '';
+                document.getElementById('tanggal_lahir').value = d.tanggal_lahir || '';
+                document.getElementById('agama').value = d.agama || '';
+                document.getElementById('no_hp').value = d.no_hp || '';
+                document.getElementById('sekolah_asal').value = d.sekolah_asal || '';
+                document.getElementById('alamat').value = d.alamat || '';
+                document.getElementById('nama_ayah').value = d.nama_ayah || '';
+                document.getElementById('pekerjaan_ayah').value = d.pekerjaan_ayah || '';
+                document.getElementById('nama_ibu').value = d.nama_ibu || '';
+                document.getElementById('pekerjaan_ibu').value = d.pekerjaan_ibu || '';
             }
         } catch (err) {
-            console.error("Gagal mengambil data edit:", err);
+            console.error(err);
         }
     }
 
+    // Delete Siswa
     async function deleteSiswa(id) {
         if (!confirm('Apakah Anda yakin ingin menghapus data siswa ini?')) return;
 
         try {
-            const res = await fetch(`${API_URL}/${id}`, {
+            const response = await fetch(`{{ url('admin/siswa') }}/${id}`, {
                 method: 'DELETE',
                 headers: {
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': CSRF_TOKEN
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
                 }
             });
+            const result = await response.json();
 
-            const json = await res.json();
-            if (json.status === 'success') {
-                fetchSiswa();
+            if (result.status === 'success') {
+                loadData(currentUrl);
+                alert(result.message);
             } else {
-                alert(json.message || 'Gagal menghapus data.');
+                alert(result.message || 'Gagal menghapus data.');
             }
         } catch (err) {
-            console.error("Gagal menghapus data:", err);
+            console.error(err);
         }
     }
 
     function clearErrors() {
-        document.querySelectorAll('.error-msg').forEach(el => el.innerText = '');
+        document.querySelectorAll('.error-text').forEach(el => el.innerText = '');
+    }
+
+    function showLoading(state) {
+        const loadingRow = document.getElementById('loadingRow');
+        if (state) {
+            loadingRow.classList.remove('hidden');
+        } else {
+            loadingRow.classList.add('hidden');
+        }
     }
 </script>
 @endsection
