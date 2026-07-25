@@ -1,21 +1,13 @@
-# TODO: Perbaikan Bug Absensi Guru ✅ SELESAI
+# TODO - Fix Absensi JS Fetch & Request
 
-## Step 1: Perbaiki `app/Services/AbsensiService.php` ✅
-- [x] Tambah field `sudah_ajukan_izin`, `status_pengajuan`, `bisa_ajukan_izin` di response `statusHariIni()`
-- [x] Tambah pengecekan izin di `absenMasuk()` — blokir jika sudah ada izin hari ini
-- [x] Tambah pengecekan izin di `absenPulang()` — blokir jika sudah ada izin hari ini
-
-## Step 2: Perbaiki `app/Http/Controllers/Guru/AbsensiController.php` ✅
-- [x] Tambah try-catch di `status()` → cegah error 500 "Gagal Memuat Data"
-
-## Step 3: Perbaiki `public/js/absensi.js` ✅
-- [x] Integrasikan `sudah_ajukan_izin` dari response status
-- [x] Update `renderStatusBannerDanAksi()` — handle status pengajuan izin
-- [x] Tambah retry logic saat fetch status gagal
-- [x] Dispatch custom event `absensi-status-update` untuk komunikasi ke Blade
-
-## Step 4: Perbaiki `resources/views/guru/absensi/index.blade.php` ✅
-- [x] Sembunyikan tombol "Ajukan Izin" jika tidak ada jadwal & tidak bisa ajukan
-- [x] Listen custom event `absensi-status-update` untuk update tombol izin
-- [x] Kontrol visibility tombol berdasarkan data dari status API
+## Plan
+1. ✅ Understand all files and identify mismatches
+2. ✅ Plan approved
+3. ✅ **Replace `public/js/absensi.js`** with corrected version:
+   - ✅ Fix jadwal array rendering (iterates over array items with correct prop names: `nama_mapel`, `nama_kelas`, `jam_masuk`, `jam_pulang`)
+   - ✅ Fix wajah status check (`wajahRes.data.terdaftar` instead of `wajahRes.is_registered`)
+   - ✅ Keep correct payload structure (`descriptor`, `foto`, `latitude`, `longitude`)
+   - ✅ Keep proper SubmitButtonController and busy flag logic
+   - ✅ Fix `dom.infoJadwal` → `els.infoJadwal` reference
+4. ✅ Done - all changes implemented
 

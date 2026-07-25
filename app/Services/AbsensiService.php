@@ -35,17 +35,20 @@ class AbsensiService
         return KonfigurasiAbsen::first() ?? KonfigurasiAbsen::create([]);
     }
 
-    public function cekJadwalHariIni(Guru $guru, ?Carbon $tanggal = null)
-    {
-        $tanggal ??= now();
-        $hari = $this->namaHariIndonesia($tanggal);
 
-        return Jadwal::where('guru_id', $guru->id)
-            ->where('hari', $hari)
-            ->where('is_active', true)
-            ->orderBy('jam_masuk', 'asc')
-            ->get();
-    }
+
+public function cekJadwalHariIni(Guru $guru, ?Carbon $tanggal = null)
+{
+    $tanggal ??= now();
+    $hari = $this->namaHariIndonesia($tanggal);
+
+    return Jadwal::with(['mapel', 'kelas'])
+        ->where('guru_id', $guru->id)
+        ->where('hari', $hari)
+        ->where('is_active', true)
+        ->orderBy('jam_masuk', 'asc')
+        ->get();
+}
 
     public function namaHariIndonesia(Carbon $date): string
     {
@@ -299,88 +302,93 @@ class AbsensiService
         return $result['absensi'];
     }
 
-    public function statusHariIni(Guru $guru): array
-    {
-        $now = now();
-        $hari = $this->namaHariIndonesia($now);
 
-        $jadwals = Jadwal::where('guru_id', $guru->id)
-            ->where('hari', $hari)
-            ->where('is_active', true)
-            ->orderBy('jam_masuk')
-            ->get();
+public function statusHariIni(Guru $guru): array
+{
+    $now = now();
+    $hari = $this->namaHariIndonesia($now);
 
-        $adaJadwal = $jadwals->isNotEmpty();
+    // Ambil jadwal beserta relasi mapel dan kelas sesuai JadwalController
+    $jadwals = Jadwal::with(['mapel', 'kelas'])
+        ->where('guru_id', $guru->id)
+        ->where('hari', $hari)
+        ->where('is_active', true)
+        ->orderBy('jam_masuk')
+        ->get();
 
-        $absensi = Absensi::where('guru_id', $guru->id)
-            ->where('tanggal', $now->toDateString())
-            ->first();
+    $adaJadwal = $jadwals->isNotEmpty();
 
-        $sudahAjukanIzin = $absensi && in_array($absensi->status, ['izin', 'sakit', 'cuti', 'tugas_luar']);
-        $statusPengajuan = $absensi?->status_persetujuan;
+    $absensi = Absensi::where('guru_id', $guru->id)
+        ->where('tanggal', $now->toDateString())
+        ->first();
 
-        $bisaAjukanIzin = $adaJadwal && !$absensi;
-        if ($absensi && $absensi->status_persetujuan === 'ditolak') {
-            $bisaAjukanIzin = true;
-        }
+    $sudahAjukanIzin = $absensi && in_array($absensi->status, ['izin', 'sakit', 'cuti', 'tugas_luar']);
+    $statusPengajuan = $absensi?->status_persetujuan;
 
-        $sekolah = $this->getSekolah();
-        $konfig = $this->getKonfigurasi();
-
-        // Menggunakan jam_masuk & jam_keluar dari tabel sekolah untuk time windows
-        $jamMasukSekolah = Carbon::parse($sekolah->jam_masuk)->setDateFrom($now);
-        $bukaAbsenMasuk = $jamMasukSekolah->copy()->subMinutes($konfig->buka_absen_masuk_menit);
-        $batasTepatWaktu = $jamMasukSekolah->copy()->addMinutes($konfig->toleransi_terlambat_menit);
-
-        $jamKeluarSekolah = Carbon::parse($sekolah->jam_keluar)->setDateFrom($now);
-        $bukaAbsenPulang = $jamKeluarSekolah->copy()->subMinutes($konfig->buka_absen_pulang_menit);
-
-        return [
-            'guru' => [
-                'id' => $guru->id,
-                'nama' => $guru->nama,
-                'nip' => $guru->nip,
-                'foto_profil' => $guru->foto_profil,
-            ],
-            'tanggal' => $now->toDateString(),
-            'hari' => $hari,
-            'ada_jadwal_mengajar' => $adaJadwal,
-            'jadwal' => $jadwals->map(function ($jadwal) {
-                return [
-                    'id' => $jadwal->id,
-                    'mapel_id' => $jadwal->mapel_id,
-                    'kelas_id' => $jadwal->kelas_id,
-                    'ruangan' => $jadwal->ruangan,
-                    'jam_masuk' => $jadwal->jam_masuk,
-                    'jam_pulang' => $jadwal->jam_pulang,
-                ];
-            })->values(),
-            'sekolah' => [
-                'nama_sekolah' => $sekolah->nama_sekolah,
-                'latitude' => $sekolah->latitude,
-                'longitude' => $sekolah->longitude,
-                'radius' => $sekolah->radius,
-                'jam_masuk' => $sekolah->jam_masuk,
-                'jam_keluar' => $sekolah->jam_keluar,
-            ],
-            'time_windows' => [
-                'buka_absen_masuk' => $bukaAbsenMasuk->format('H:i:s'),
-                'batas_tepat_waktu' => $batasTepatWaktu->format('H:i:s'),
-                'buka_absen_pulang' => $bukaAbsenPulang->format('H:i:s'),
-            ],
-            'konfigurasi' => [
-                'buka_absen_masuk_menit' => $konfig->buka_absen_masuk_menit,
-                'toleransi_terlambat_menit' => $konfig->toleransi_terlambat_menit,
-                'buka_absen_pulang_menit' => $konfig->buka_absen_pulang_menit,
-            ],
-            'sudah_absen_masuk' => (bool) ($absensi?->jam_masuk),
-            'sudah_absen_pulang' => (bool) ($absensi?->jam_pulang),
-            'sudah_ajukan_izin' => $sudahAjukanIzin,
-            'status_pengajuan' => $statusPengajuan,
-            'bisa_ajukan_izin' => $bisaAjukanIzin,
-            'absensi' => $absensi,
-        ];
+    $bisaAjukanIzin = $adaJadwal && !$absensi;
+    if ($absensi && $absensi->status_persetujuan === 'ditolak') {
+        $bisaAjukanIzin = true;
     }
+
+    $sekolah = $this->getSekolah();
+    $konfig = $this->getKonfigurasi();
+
+    // Menggunakan jam_masuk & jam_keluar dari tabel sekolah untuk time windows
+    $jamMasukSekolah = Carbon::parse($sekolah->jam_masuk)->setDateFrom($now);
+    $bukaAbsenMasuk = $jamMasukSekolah->copy()->subMinutes($konfig->buka_absen_masuk_menit);
+    $batasTepatWaktu = $jamMasukSekolah->copy()->addMinutes($konfig->toleransi_terlambat_menit);
+
+    $jamKeluarSekolah = Carbon::parse($sekolah->jam_keluar)->setDateFrom($now);
+    $bukaAbsenPulang = $jamKeluarSekolah->copy()->subMinutes($konfig->buka_absen_pulang_menit);
+
+    return [
+        'guru' => [
+            'id' => $guru->id,
+            'nama' => $guru->nama,
+            'nip' => $guru->nip,
+            'foto_profil' => $guru->foto_profil,
+        ],
+        'tanggal' => $now->toDateString(),
+        'hari' => $hari,
+        'ada_jadwal_mengajar' => $adaJadwal,
+        'jadwal' => $jadwals->map(function ($jadwal) {
+            return [
+                'id' => $jadwal->id,
+                'mapel_id' => $jadwal->mapel_id,
+                'nama_mapel' => $jadwal->mapel?->nama_mapel ?? $jadwal->mapel?->nama ?? '-',
+                'kelas_id' => $jadwal->kelas_id,
+                'nama_kelas' => $jadwal->kelas?->nama_kelas ?? $jadwal->kelas?->nama ?? '-',
+                'ruangan' => $jadwal->ruangan ?? null,
+                'jam_masuk' => $jadwal->jam_masuk,
+                'jam_pulang' => $jadwal->jam_pulang,
+            ];
+        })->values(),
+        'sekolah' => [
+            'nama_sekolah' => $sekolah->nama_sekolah,
+            'latitude' => $sekolah->latitude,
+            'longitude' => $sekolah->longitude,
+            'radius' => $sekolah->radius,
+            'jam_masuk' => $sekolah->jam_masuk,
+            'jam_keluar' => $sekolah->jam_keluar,
+        ],
+        'time_windows' => [
+            'buka_absen_masuk' => $bukaAbsenMasuk->format('H:i:s'),
+            'batas_tepat_waktu' => $batasTepatWaktu->format('H:i:s'),
+            'buka_absen_pulang' => $bukaAbsenPulang->format('H:i:s'),
+        ],
+        'konfigurasi' => [
+            'buka_absen_masuk_menit' => $konfig->buka_absen_masuk_menit,
+            'toleransi_terlambat_menit' => $konfig->toleransi_terlambat_menit,
+            'buka_absen_pulang_menit' => $konfig->buka_absen_pulang_menit,
+        ],
+        'sudah_absen_masuk' => (bool) ($absensi?->jam_masuk),
+        'sudah_absen_pulang' => (bool) ($absensi?->jam_pulang),
+        'sudah_ajukan_izin' => $sudahAjukanIzin,
+        'status_pengajuan' => $statusPengajuan,
+        'bisa_ajukan_izin' => $bisaAjukanIzin,
+        'absensi' => $absensi,
+    ];
+}
 
     protected function simpanFoto(string $base64Image, int $guruId, string $tipe): string
     {

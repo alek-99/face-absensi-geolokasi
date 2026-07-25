@@ -2,22 +2,21 @@
 
 @section('title', 'Manajemen Data Siswa')
 
-
 @section('content')
 <div class="space-y-8">
     <!-- Header Section -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
-            <h1 class="text-2xl font-bold text-white">Data Siswa</h1>
-            <p class="text-sm text-gray-400">Kelola seluruh data siswa, pencarian, serta pembaruan profil.</p>
+            <h1 class="text-2xl font-bold text-gray-900">Data Siswa</h1>
+            <p class="text-sm text-gray-500">Kelola seluruh data siswa, pencarian, serta pembaruan profil.</p>
         </div>
-        <button onclick="openModal('create')" class="inline-flex items-center justify-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-sm transition-all shadow-md hover:shadow-indigo-500/20">
+        <button onclick="openModal('create')" class="inline-flex items-center justify-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-sm transition-all shadow-md shadow-indigo-200 hover:shadow-indigo-300">
             <i class="fa-solid fa-plus mr-2"></i> Tambah Siswa
         </button>
     </div>
 
     <!-- Filter & Search Bar -->
-    <div class="bg-gray-800 rounded-xl p-4 border border-gray-700/60 mb-6 shadow-lg">
+    <div class="bg-white rounded-xl p-4 border border-gray-200 mb-6 shadow-sm">
         <form id="filterForm" class="grid grid-cols-1 md:grid-cols-12 gap-4">
             <!-- Search -->
             <div class="md:col-span-6 relative">
@@ -25,12 +24,12 @@
                     <i class="fa-solid fa-magnifying-glass"></i>
                 </div>
                 <input type="text" id="searchInput" name="search" value="{{ request('search') }}" placeholder="Cari Nama, NISN, NIK, NIPD..." 
-                    class="w-full pl-10 pr-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-gray-500">
+                    class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-gray-400 transition-all">
             </div>
 
             <!-- Filter Kelas -->
             <div class="md:col-span-4">
-                <select id="filterKelas" name="kelas_id" class="w-full py-2 px-3 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                <select id="filterKelas" name="kelas_id" class="w-full py-2 px-3 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all">
                     <option value="">-- Semua Kelas --</option>
                     @foreach($kelas as $k)
                         <option value="{{ $k->id }}" {{ request('kelas_id') == $k->id ? 'selected' : '' }}>{{ $k->nama_kelas ?? $k->nama }}</option>
@@ -40,10 +39,10 @@
 
             <!-- Action Filter -->
             <div class="md:col-span-2 flex gap-2">
-                <button type="submit" class="w-full py-2 px-4 bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center">
+                <button type="submit" class="w-full py-2 px-4 bg-gray-800 hover:bg-gray-900 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center shadow-sm">
                     <i class="fa-solid fa-filter mr-2"></i> Filter
                 </button>
-                <a href="{{ route('admin.siswa.index') }}" class="py-2 px-3 bg-gray-800 hover:bg-gray-700 border border-gray-600 text-gray-300 text-sm font-medium rounded-lg transition-colors flex items-center justify-center" title="Reset Filter">
+                <a href="{{ route('admin.siswa.index') }}" class="py-2 px-3 bg-white hover:bg-gray-100 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg transition-colors flex items-center justify-center shadow-sm" title="Reset Filter">
                     <i class="fa-solid fa-rotate"></i>
                 </a>
             </div>
@@ -51,10 +50,10 @@
     </div>
 
     <!-- Table Section -->
-    <div class="bg-gray-800 rounded-xl border border-gray-700/60 shadow-xl overflow-hidden">
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left text-gray-300">
-                <thead class="text-xs text-gray-400 uppercase bg-gray-900/80 border-b border-gray-700">
+            <table class="w-full text-sm text-left text-gray-600">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-200">
                     <tr>
                         <th scope="col" class="px-4 py-3 text-center">No</th>
                         <th scope="col" class="px-4 py-3">Nama Lengkap</th>
@@ -65,11 +64,11 @@
                         <th scope="col" class="px-4 py-3 text-center">Aksi</th>
                     </tr>
                 </thead>
-                <tbody id="siswaTableBody" class="divide-y divide-gray-700/60">
+                <tbody id="siswaTableBody" class="divide-y divide-gray-200">
                     <!-- Data di-render lewat AJAX atau Server Fallback -->
                     <tr id="loadingRow" class="hidden">
-                        <td colspan="7" class="text-center py-8 text-gray-400">
-                            <i class="fa-solid fa-spinner fa-spin text-2xl text-indigo-500 mb-2"></i>
+                        <td colspan="7" class="text-center py-8 text-gray-500">
+                            <i class="fa-solid fa-spinner fa-spin text-2xl text-indigo-600 mb-2"></i>
                             <p>Memuat data...</p>
                         </td>
                     </tr>
@@ -78,7 +77,7 @@
         </div>
 
         <!-- Pagination Container -->
-        <div id="paginationContainer" class="p-4 border-t border-gray-700 bg-gray-900/40 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div id="paginationContainer" class="p-4 border-t border-gray-200 bg-gray-50 flex flex-col md:flex-row items-center justify-between gap-4">
             <!-- Rendered by JavaScript -->
         </div>
     </div>
@@ -87,12 +86,12 @@
 <!-- ========================================== -->
 <!-- MODAL FORM (TAMBAH & EDIT) -->
 <!-- ========================================== -->
-<div id="formModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="relative w-full max-w-4xl bg-gray-800 border border-gray-700 rounded-xl shadow-2xl overflow-hidden">
+<div id="formModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="relative w-full max-w-4xl bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden">
         <!-- Header -->
-        <div class="flex items-center justify-between px-6 py-4 bg-gray-900 border-b border-gray-700">
-            <h3 id="modalTitle" class="text-lg font-semibold text-white">Tambah Data Siswa</h3>
-            <button onclick="closeModal('formModal')" class="text-gray-400 hover:text-white transition-colors">
+        <div class="flex items-center justify-between px-6 py-4 bg-gray-50 border-b border-gray-200">
+            <h3 id="modalTitle" class="text-lg font-semibold text-gray-800">Tambah Data Siswa</h3>
+            <button onclick="closeModal('formModal')" class="text-gray-400 hover:text-gray-600 transition-colors">
                 <i class="fa-solid fa-xmark text-xl"></i>
             </button>
         </div>
@@ -103,121 +102,121 @@
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <!-- Identitas Utama -->
-                <div class="md:col-span-3 border-b border-gray-700 pb-2">
-                    <h4 class="text-sm font-semibold text-indigo-400 uppercase tracking-wider">Identitas Utama</h4>
+                <div class="md:col-span-3 border-b border-gray-200 pb-2">
+                    <h4 class="text-sm font-semibold text-indigo-600 uppercase tracking-wider">Identitas Utama</h4>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-gray-300 mb-1">Nama Lengkap <span class="text-red-500">*</span></label>
-                    <input type="text" id="nama" name="nama" required class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
-                    <span class="text-red-400 text-xs error-text nama_error"></span>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Nama Lengkap <span class="text-red-500">*</span></label>
+                    <input type="text" id="nama" name="nama" required class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
+                    <span class="text-red-500 text-xs error-text nama_error"></span>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-gray-300 mb-1">NISN <span class="text-red-500">*</span></label>
-                    <input type="text" id="nisn" name="nisn" required class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
-                    <span class="text-red-400 text-xs error-text nisn_error"></span>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">NISN <span class="text-red-500">*</span></label>
+                    <input type="text" id="nisn" name="nisn" required class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
+                    <span class="text-red-500 text-xs error-text nisn_error"></span>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-gray-300 mb-1">Kelas <span class="text-red-500">*</span></label>
-                    <select id="kelas_id" name="kelas_id" required class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Kelas <span class="text-red-500">*</span></label>
+                    <select id="kelas_id" name="kelas_id" required class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
                         <option value="">-- Pilih Kelas --</option>
                         @foreach($kelas as $k)
                             <option value="{{ $k->id }}">{{ $k->nama_kelas ?? $k->nama }}</option>
                         @endforeach
                     </select>
-                    <span class="text-red-400 text-xs error-text kelas_id_error"></span>
+                    <span class="text-red-500 text-xs error-text kelas_id_error"></span>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-gray-300 mb-1">NIK</label>
-                    <input type="text" id="nik" name="nik" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
-                    <span class="text-red-400 text-xs error-text nik_error"></span>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">NIK</label>
+                    <input type="text" id="nik" name="nik" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
+                    <span class="text-red-500 text-xs error-text nik_error"></span>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-gray-300 mb-1">NIPD</label>
-                    <input type="text" id="nipd" name="nipd" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
+                    <label class="block text-xs font-medium text-gray-700 mb-1">NIPD</label>
+                    <input type="text" id="nipd" name="nipd" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-gray-300 mb-1">Jenis Kelamin <span class="text-red-500">*</span></label>
-                    <select id="jenis_kelamin" name="jenis_kelamin" required class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Jenis Kelamin <span class="text-red-500">*</span></label>
+                    <select id="jenis_kelamin" name="jenis_kelamin" required class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
                         <option value="laki-laki">Laki-laki</option>
                         <option value="perempuan">Perempuan</option>
                     </select>
                 </div>
 
                 <!-- Biodata & Kelahiran -->
-                <div class="md:col-span-3 border-b border-gray-700 pb-2 pt-2">
-                    <h4 class="text-sm font-semibold text-indigo-400 uppercase tracking-wider">Biodata & Kelahiran</h4>
+                <div class="md:col-span-3 border-b border-gray-200 pb-2 pt-2">
+                    <h4 class="text-sm font-semibold text-indigo-600 uppercase tracking-wider">Biodata & Kelahiran</h4>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-gray-300 mb-1">Tempat Lahir</label>
-                    <input type="text" id="tempat_lahir" name="tempat_lahir" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Tempat Lahir</label>
+                    <input type="text" id="tempat_lahir" name="tempat_lahir" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-gray-300 mb-1">Tanggal Lahir</label>
-                    <input type="date" id="tanggal_lahir" name="tanggal_lahir" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Tanggal Lahir</label>
+                    <input type="date" id="tanggal_lahir" name="tanggal_lahir" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-gray-300 mb-1">Agama</label>
-                    <input type="text" id="agama" name="agama" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Agama</label>
+                    <input type="text" id="agama" name="agama" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-gray-300 mb-1">No. HP/WA</label>
-                    <input type="text" id="no_hp" name="no_hp" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
+                    <label class="block text-xs font-medium text-gray-700 mb-1">No. HP/WA</label>
+                    <input type="text" id="no_hp" name="no_hp" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-gray-300 mb-1">Sekolah Asal</label>
-                    <input type="text" id="sekolah_asal" name="sekolah_asal" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Sekolah Asal</label>
+                    <input type="text" id="sekolah_asal" name="sekolah_asal" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
                 </div>
 
                 <div class="md:col-span-3">
-                    <label class="block text-xs font-medium text-gray-300 mb-1">Alamat</label>
-                    <textarea id="alamat" name="alamat" rows="2" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500"></textarea>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Alamat</label>
+                    <textarea id="alamat" name="alamat" rows="2" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500"></textarea>
                 </div>
 
                 <!-- Data Orang Tua -->
-                <div class="md:col-span-3 border-b border-gray-700 pb-2 pt-2">
-                    <h4 class="text-sm font-semibold text-indigo-400 uppercase tracking-wider">Data Orang Tua</h4>
+                <div class="md:col-span-3 border-b border-gray-200 pb-2 pt-2">
+                    <h4 class="text-sm font-semibold text-indigo-600 uppercase tracking-wider">Data Orang Tua</h4>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-gray-300 mb-1">Nama Ayah</label>
-                    <input type="text" id="nama_ayah" name="nama_ayah" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Nama Ayah</label>
+                    <input type="text" id="nama_ayah" name="nama_ayah" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-gray-300 mb-1">Pekerjaan Ayah</label>
-                    <input type="text" id="pekerjaan_ayah" name="pekerjaan_ayah" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Pekerjaan Ayah</label>
+                    <input type="text" id="pekerjaan_ayah" name="pekerjaan_ayah" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
                 </div>
 
                 <div class="hidden md:block"></div>
 
                 <div>
-                    <label class="block text-xs font-medium text-gray-300 mb-1">Nama Ibu</label>
-                    <input type="text" id="nama_ibu" name="nama_ibu" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Nama Ibu</label>
+                    <input type="text" id="nama_ibu" name="nama_ibu" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-medium text-gray-300 mb-1">Pekerjaan Ibu</label>
-                    <input type="text" id="pekerjaan_ibu" name="pekerjaan_ibu" class="w-full px-3 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-100 focus:ring-1 focus:ring-indigo-500">
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Pekerjaan Ibu</label>
+                    <input type="text" id="pekerjaan_ibu" name="pekerjaan_ibu" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
                 </div>
             </div>
 
             <!-- Footer Action -->
-            <div class="flex justify-end gap-3 pt-4 border-t border-gray-700">
-                <button type="button" onclick="closeModal('formModal')" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-200 text-sm font-medium rounded-lg transition-colors">
+            <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                <button type="button" onclick="closeModal('formModal')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors">
                     Batal
                 </button>
-                <button type="submit" id="btnSave" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center">
+                <button type="submit" id="btnSave" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center shadow-sm">
                     <i class="fa-solid fa-floppy-disk mr-2"></i> Simpan
                 </button>
             </div>
@@ -228,71 +227,71 @@
 <!-- ========================================== -->
 <!-- MODAL SHOW (DETAIL SISWA) -->
 <!-- ========================================== -->
-<div id="showModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="relative w-full max-w-3xl bg-gray-800 border border-gray-700 rounded-xl shadow-2xl overflow-hidden">
+<div id="showModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="relative w-full max-w-3xl bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden">
         <!-- Header -->
-        <div class="flex items-center justify-between px-6 py-4 bg-gray-900 border-b border-gray-700">
-            <h3 class="text-lg font-semibold text-white">Detail Informasi Siswa</h3>
-            <button onclick="closeModal('showModal')" class="text-gray-400 hover:text-white transition-colors">
+        <div class="flex items-center justify-between px-6 py-4 bg-gray-50 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-800">Detail Informasi Siswa</h3>
+            <button onclick="closeModal('showModal')" class="text-gray-400 hover:text-gray-600 transition-colors">
                 <i class="fa-solid fa-xmark text-xl"></i>
             </button>
         </div>
 
         <!-- Body Detail -->
         <div class="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
-            <div class="flex items-center gap-4 bg-gray-900/60 p-4 rounded-lg border border-gray-700">
-                <div class="w-16 h-16 rounded-full bg-indigo-600/30 text-indigo-400 flex items-center justify-center text-2xl font-bold border border-indigo-500/30">
+            <div class="flex items-center gap-4 bg-indigo-50/50 p-4 rounded-lg border border-indigo-100">
+                <div class="w-16 h-16 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-2xl font-bold border border-indigo-200">
                     <i class="fa-solid fa-user-graduate"></i>
                 </div>
                 <div>
-                    <h2 id="show_nama" class="text-xl font-bold text-white">-</h2>
-                    <p class="text-sm text-indigo-400" id="show_kelas">-</p>
-                    <p class="text-xs text-gray-400" id="show_nisn_nik">-</p>
+                    <h2 id="show_nama" class="text-xl font-bold text-gray-900">-</h2>
+                    <p class="text-sm font-medium text-indigo-600" id="show_kelas">-</p>
+                    <p class="text-xs text-gray-500" id="show_nisn_nik">-</p>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div class="bg-gray-900/40 p-3 rounded-lg border border-gray-700/50">
-                    <span class="text-xs text-gray-400 block">NIPD</span>
-                    <span id="show_nipd" class="font-medium text-gray-200">-</span>
+                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <span class="text-xs text-gray-500 block">NIPD</span>
+                    <span id="show_nipd" class="font-medium text-gray-800">-</span>
                 </div>
-                <div class="bg-gray-900/40 p-3 rounded-lg border border-gray-700/50">
-                    <span class="text-xs text-gray-400 block">Jenis Kelamin</span>
-                    <span id="show_jk" class="font-medium text-gray-200">-</span>
+                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <span class="text-xs text-gray-500 block">Jenis Kelamin</span>
+                    <span id="show_jk" class="font-medium text-gray-800">-</span>
                 </div>
-                <div class="bg-gray-900/40 p-3 rounded-lg border border-gray-700/50">
-                    <span class="text-xs text-gray-400 block">TTL</span>
-                    <span id="show_ttl" class="font-medium text-gray-200">-</span>
+                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <span class="text-xs text-gray-500 block">TTL</span>
+                    <span id="show_ttl" class="font-medium text-gray-800">-</span>
                 </div>
-                <div class="bg-gray-900/40 p-3 rounded-lg border border-gray-700/50">
-                    <span class="text-xs text-gray-400 block">Agama</span>
-                    <span id="show_agama" class="font-medium text-gray-200">-</span>
+                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <span class="text-xs text-gray-500 block">Agama</span>
+                    <span id="show_agama" class="font-medium text-gray-800">-</span>
                 </div>
-                <div class="bg-gray-900/40 p-3 rounded-lg border border-gray-700/50">
-                    <span class="text-xs text-gray-400 block">No. HP</span>
-                    <span id="show_nohp" class="font-medium text-gray-200">-</span>
+                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <span class="text-xs text-gray-500 block">No. HP</span>
+                    <span id="show_nohp" class="font-medium text-gray-800">-</span>
                 </div>
-                <div class="bg-gray-900/40 p-3 rounded-lg border border-gray-700/50">
-                    <span class="text-xs text-gray-400 block">Sekolah Asal</span>
-                    <span id="show_sekolah_asal" class="font-medium text-gray-200">-</span>
+                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <span class="text-xs text-gray-500 block">Sekolah Asal</span>
+                    <span id="show_sekolah_asal" class="font-medium text-gray-800">-</span>
                 </div>
-                <div class="md:col-span-2 bg-gray-900/40 p-3 rounded-lg border border-gray-700/50">
-                    <span class="text-xs text-gray-400 block">Alamat</span>
-                    <span id="show_alamat" class="font-medium text-gray-200">-</span>
+                <div class="md:col-span-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <span class="text-xs text-gray-500 block">Alamat</span>
+                    <span id="show_alamat" class="font-medium text-gray-800">-</span>
                 </div>
-                <div class="bg-gray-900/40 p-3 rounded-lg border border-gray-700/50">
-                    <span class="text-xs text-gray-400 block">Ayah (Pekerjaan)</span>
-                    <span id="show_ayah" class="font-medium text-gray-200">-</span>
+                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <span class="text-xs text-gray-500 block">Ayah (Pekerjaan)</span>
+                    <span id="show_ayah" class="font-medium text-gray-800">-</span>
                 </div>
-                <div class="bg-gray-900/40 p-3 rounded-lg border border-gray-700/50">
-                    <span class="text-xs text-gray-400 block">Ibu (Pekerjaan)</span>
-                    <span id="show_ibu" class="font-medium text-gray-200">-</span>
+                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <span class="text-xs text-gray-500 block">Ibu (Pekerjaan)</span>
+                    <span id="show_ibu" class="font-medium text-gray-800">-</span>
                 </div>
             </div>
         </div>
 
-        <div class="flex justify-end p-4 border-t border-gray-700 bg-gray-900/50">
-            <button type="button" onclick="closeModal('showModal')" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-200 text-sm font-medium rounded-lg transition-colors">
+        <div class="flex justify-end p-4 border-t border-gray-200 bg-gray-50">
+            <button type="button" onclick="closeModal('showModal')" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-medium rounded-lg transition-colors">
                 Tutup
             </button>
         </div>
@@ -350,36 +349,36 @@
         if (!siswas || siswas.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="7" class="text-center py-8 text-gray-500">Tidak ada data siswa ditemukan.</td>
+                    <td colspan="7" class="text-center py-8 text-gray-400">Tidak ada data siswa ditemukan.</td>
                 </tr>`;
             return;
         }
 
         siswas.forEach((siswa, index) => {
             const row = `
-                <tr class="hover:bg-gray-700/30 transition-colors">
-                    <td class="px-4 py-3 text-center text-gray-400 font-medium">${(fromIndex || 1) + index}</td>
-                    <td class="px-4 py-3 font-semibold text-white">${siswa.nama}</td>
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-4 py-3 text-center text-gray-500 font-medium">${(fromIndex || 1) + index}</td>
+                    <td class="px-4 py-3 font-semibold text-gray-800">${siswa.nama}</td>
                     <td class="px-4 py-3">
-                        <div class="text-xs text-gray-200">NISN: ${siswa.nisn || '-'}</div>
-                        <div class="text-[11px] text-gray-400">NIK: ${siswa.nik || '-'}</div>
+                        <div class="text-xs text-gray-800 font-medium">NISN: ${siswa.nisn || '-'}</div>
+                        <div class="text-[11px] text-gray-500">NIK: ${siswa.nik || '-'}</div>
                     </td>
                     <td class="px-4 py-3">
-                        <span class="px-2 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-md text-xs font-medium">
+                        <span class="px-2.5 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-md text-xs font-medium">
                             ${siswa.kelas ? (siswa.kelas.nama_kelas || siswa.kelas.nama) : '-'}
                         </span>
                     </td>
-                    <td class="px-4 py-3 uppercase text-xs">${siswa.jenis_kelamin === 'laki-laki' ? 'L' : 'P'}</td>
-                    <td class="px-4 py-3 text-xs text-gray-300">${siswa.no_hp || '-'}</td>
+                    <td class="px-4 py-3 uppercase text-xs font-medium text-gray-600">${siswa.jenis_kelamin === 'laki-laki' ? 'L' : 'P'}</td>
+                    <td class="px-4 py-3 text-xs text-gray-600">${siswa.no_hp || '-'}</td>
                     <td class="px-4 py-3 text-center">
-                        <div class="flex items-center justify-center gap-2">
-                            <button onclick="showDetail(${siswa.id})" class="p-2 bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white rounded-lg transition-colors" title="Detail">
+                        <div class="flex items-center justify-center gap-1.5">
+                            <button onclick="showDetail(${siswa.id})" class="p-2 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg transition-colors border border-blue-100" title="Detail">
                                 <i class="fa-solid fa-eye"></i>
                             </button>
-                            <button onclick="editSiswa(${siswa.id})" class="p-2 bg-amber-600/20 text-amber-400 hover:bg-amber-600 hover:text-white rounded-lg transition-colors" title="Edit">
+                            <button onclick="editSiswa(${siswa.id})" class="p-2 bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white rounded-lg transition-colors border border-amber-100" title="Edit">
                                 <i class="fa-solid fa-pen-to-square"></i>
                             </button>
-                            <button onclick="deleteSiswa(${siswa.id})" class="p-2 bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white rounded-lg transition-colors" title="Hapus">
+                            <button onclick="deleteSiswa(${siswa.id})" class="p-2 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-lg transition-colors border border-red-100" title="Hapus">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </div>
@@ -393,23 +392,23 @@
     function renderPagination(data) {
         const container = document.getElementById('paginationContainer');
         if (!data.links || data.links.length <= 3) {
-            container.innerHTML = `<span class="text-xs text-gray-400">Menampilkan ${data.total} total data</span>`;
+            container.innerHTML = `<span class="text-xs text-gray-500">Menampilkan ${data.total} total data</span>`;
             return;
         }
 
         let linksHtml = '';
         data.links.forEach(link => {
             if (link.url) {
-                const activeClass = link.active ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700';
-                linksHtml += `<button onclick="loadData('${link.url}')" class="px-3 py-1 text-xs rounded-md border border-gray-700 ${activeClass} transition-colors">${link.label}</button>`;
+                const activeClass = link.active ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-700 hover:bg-gray-100 border-gray-300';
+                linksHtml += `<button onclick="loadData('${link.url}')" class="px-3 py-1 text-xs rounded-md border ${activeClass} transition-colors">${link.label}</button>`;
             } else {
-                linksHtml += `<span class="px-3 py-1 text-xs rounded-md border border-gray-800 text-gray-600">${link.label}</span>`;
+                linksHtml += `<span class="px-3 py-1 text-xs rounded-md border border-gray-200 text-gray-400 bg-gray-50">${link.label}</span>`;
             }
         });
 
         container.innerHTML = `
-            <div class="text-xs text-gray-400">
-                Menampilkan <span class="font-semibold text-white">${data.from || 0}</span> - <span class="font-semibold text-white">${data.to || 0}</span> dari <span class="font-semibold text-white">${data.total}</span> data
+            <div class="text-xs text-gray-500">
+                Menampilkan <span class="font-semibold text-gray-800">${data.from || 0}</span> - <span class="font-semibold text-gray-800">${data.to || 0}</span> dari <span class="font-semibold text-gray-800">${data.total}</span> data
             </div>
             <div class="flex items-center gap-1">${linksHtml}</div>
         `;

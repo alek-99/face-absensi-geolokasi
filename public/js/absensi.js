@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    const cfg = window.ABSENSI_CONFIG || {};
+    const cfg = window.ABSENSI_CONFIG;
     const FLASH_KEY = 'absensi_flash';
 
     const els = {
@@ -43,15 +43,18 @@
     let modelsReady = false;
     let modelsLoading = false;
     let statusData = null;
-    let wajahTerdaftar = null;
+    let wajahTerdaftar = null; // null = belum dicek, true/false = hasil pengecekan
     let aksiAktif = null; // 'masuk' | 'pulang' | null
     let mediaStream = null;
+
+    // busy = satu-satunya penjaga supaya proses deteksi+kirim tidak dobel jalan.
     let busy = false;
 
-    // OPTIMASI 1: Ubah inputSize ke 224 agar ringan dan cepat di CPU / HP
+    // Opsi detektor dibuat lebih toleran dari default face-api agar lebih mudah
+    // mengenali wajah pada kamera desktop yang kurang tajam / cahaya kurang ideal.
     const DETECTOR_OPTIONS = () => new faceapi.TinyFaceDetectorOptions({
-        inputSize: 224, 
-        scoreThreshold: 0.4,
+        inputSize: 416,
+        scoreThreshold: 0.35,
     });
 
     init();
@@ -59,27 +62,25 @@
     async function init() {
         renderTanggal();
         showPendingFlash();
-        loadFaceApiModels().catch(err => console.error('Gagal preload model:', err));
+        loadFaceApiModels(); // background, tidak blocking UI
         await fetchWajahStatus();
         await refreshStatus();
 
-        if (els.modalClose) els.modalClose.addEventListener('click', closeModal);
-        if (els.modal) {
-            els.modal.addEventListener('click', (e) => {
-                if (e.target === els.modal) closeModal();
-            });
-        }
-        if (els.modalSubmit) els.modalSubmit.addEventListener('click', onSubmitButtonClick);
+        els.modalClose.addEventListener('click', closeModal);
+        els.modal.addEventListener('click', (e) => {
+            if (e.target === els.modal) closeModal();
+        });
+        els.modalSubmit.addEventListener('click', onSubmitButtonClick);
     }
 
     function renderTanggal() {
-        if (!els.tanggal) return;
         const now = new Date();
         els.tanggal.textContent = now.toLocaleDateString('id-ID', {
             weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
         });
     }
 
+    // ================= Flash toast setelah reload =================
     function showPendingFlash() {
         try {
             const raw = sessionStorage.getItem(FLASH_KEY);
@@ -87,17 +88,20 @@
             sessionStorage.removeItem(FLASH_KEY);
             const flash = JSON.parse(raw);
             showToast(flash.type, flash.message);
-        } catch (e) {}
+        } catch (e) {
+            // abaikan
+        }
     }
 
     function queueFlash(type, message) {
         try {
             sessionStorage.setItem(FLASH_KEY, JSON.stringify({ type, message }));
-        } catch (e) {}
+        } catch (e) {
+            // abaikan
+        }
     }
 
     function showToast(type, message) {
-        if (!els.toast || !els.toastBody || !els.toastIcon || !els.toastMessage) return;
         const styles = {
             success: { cls: 'bg-emerald-50 border-emerald-200 text-emerald-700', icon: 'fa-circle-check text-emerald-500' },
             error: { cls: 'bg-red-50 border-red-200 text-red-700', icon: 'fa-circle-exclamation text-red-500' },
@@ -118,93 +122,81 @@
         }, 4000);
     }
 
+    // ================= Face API models =================
     let modelsPromise = null;
 
-    async function loadFaceApiModels() {
-        if (modelsReady) return;
+    function loadFaceApiModels() {
+        if (modelsReady) return Promise.resolve();
+
         if (modelsPromise) return modelsPromise;
 
-        modelsPromise = (async () => {
-            modelsLoading = true;
-            try {
-                const base = cfg.modelsUrl || '/models';
-                await Promise.all([
-                    faceapi.nets.tinyFaceDetector.loadFromUri(base),
-                    faceapi.nets.faceLandmark68Net.loadFromUri(base),
-                    faceapi.nets.faceRecognitionNet.loadFromUri(base),
-                ]);
-                modelsReady = true;
-            } finally {
-                modelsLoading = false;
-            }
-        })();
+        modelsLoading = true;
+        const base = cfg.modelsUrl;
 
-        try {
-            await modelsPromise;
-        } catch (e) {
-            modelsPromise = null;
-            modelsReady = false;
-            throw e;
-        }
+        modelsPromise = Promise.all([
+            faceapi.nets.tinyFaceDetector.loadFromUri(base),
+            faceapi.nets.faceLandmark68Net.loadFromUri(base),
+            faceapi.nets.faceRecognitionNet.loadFromUri(base),
+        ]).then(() => {
+            modelsReady = true;
+            modelsLoading = false;
+        }).catch((err) => {
+            modelsLoading = false;
+            modelsPromise = null; // reset agar bisa dicoba lagi jika gagal
+            console.error("Gagal memuat model face-api:", err);
+            throw err;
+        });
+
+        return modelsPromise;
     }
 
+    // ================= Status wajah =================
     async function fetchWajahStatus() {
         try {
-            if (!cfg.wajahStatusUrl) return;
             const res = await fetch(cfg.wajahStatusUrl, {
                 headers: { Accept: 'application/json' },
                 credentials: 'same-origin',
             });
-            if (!res.ok) throw new Error('Request status wajah gagal');
+            if (!res.ok) throw new Error('wajah status request failed');
             const json = await res.json();
+            // FaceDescriptorController returns { data: { terdaftar: bool } }
             wajahTerdaftar = !!(json.data && json.data.terdaftar);
         } catch (err) {
             console.error(err);
-            wajahTerdaftar = true; 
+            // Gagal cek -> jangan blokir tampilan, biarkan backend yang validasi saat submit absen
+            wajahTerdaftar = true;
         }
     }
 
     function renderWajahBelumTerdaftar() {
         aksiAktif = null;
-        if (els.statusBanner) {
-            els.statusBanner.className = 'rounded-xl p-4 border flex items-start gap-3 bg-amber-50 border-amber-200 text-amber-700';
-            els.statusBanner.innerHTML = `
-                <i class="fa-solid fa-face-viewfinder text-lg mt-0.5"></i>
-                <div>
-                    <p class="font-semibold">Wajah belum terdaftar</p>
-                    <p class="text-sm mt-0.5">Data wajah Anda belum ada di sistem, sehingga absen tidak bisa dilakukan.</p>
-                </div>`;
-        }
-        if (els.aksiArea) {
-            els.aksiArea.innerHTML = `
-                <a href="${cfg.wajahHalamanUrl || '#'}" class="w-full py-3.5 px-4 rounded-xl bg-amber-500 text-white font-semibold shadow-sm hover:bg-amber-600 active:bg-amber-700 transition-all flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-face-viewfinder"></i> Daftarkan Wajah Sekarang
-                </a>`;
-        }
+        els.statusBanner.className = 'rounded-xl p-4 border flex items-start gap-3 bg-amber-50 border-amber-200 text-amber-700';
+        els.statusBanner.innerHTML = `
+            <i class="fa-solid fa-face-viewfinder text-lg mt-0.5"></i>
+            <div>
+                <p class="font-semibold">Wajah belum terdaftar</p>
+                <p class="text-sm mt-0.5">Data wajah Anda belum ada di sistem, sehingga absen tidak bisa dilakukan.</p>
+            </div>`;
+        els.aksiArea.innerHTML = `
+            <a href="${cfg.wajahHalamanUrl}" class="w-full py-3.5 px-4 rounded-xl bg-amber-500 text-white font-semibold shadow-sm hover:bg-amber-600 active:bg-amber-700 transition-all flex items-center justify-center gap-2">
+                <i class="fa-solid fa-face-viewfinder"></i> Daftarkan Wajah Sekarang
+            </a>`;
     }
 
+    // ================= Status & ringkasan =================
     async function refreshStatus() {
-        for (let attempt = 1; attempt <= 3; attempt++) {
-            try {
-                if (!cfg.statusUrl) return;
-                const res = await fetch(cfg.statusUrl, {
-                    headers: { Accept: 'application/json' },
-                    credentials: 'same-origin',
-                });
-                if (!res.ok) throw new Error('status request failed (' + res.status + ')');
-                const json = await res.json();
-                if (!json.data) throw new Error('status data is null');
-                statusData = json.data;
-                renderStatus(statusData);
-                return;
-            } catch (err) {
-                console.error('refreshStatus attempt ' + attempt + ' failed:', err);
-                if (attempt < 3) {
-                    await new Promise(r => setTimeout(r, attempt * 1000));
-                } else if (els.ringkasanLoading) {
-                    els.ringkasanLoading.innerHTML = '<span class="text-red-600"><i class="fa-solid fa-triangle-exclamation mr-2"></i>Gagal memuat status absensi. Silakan refresh halaman.</span>';
-                }
-            }
+        try {
+            const res = await fetch(cfg.statusUrl, {
+                headers: { Accept: 'application/json' },
+                credentials: 'same-origin',
+            });
+            if (!res.ok) throw new Error('status request failed');
+            const json = await res.json();
+            statusData = json.data;
+            renderStatus(statusData);
+        } catch (err) {
+            console.error(err);
+            els.ringkasanLoading.innerHTML = '<span class="text-red-600"><i class="fa-solid fa-triangle-exclamation mr-2"></i>Gagal memuat status absensi.</span>';
         }
     }
 
@@ -215,63 +207,42 @@
     }
 
     function renderStatus(data) {
-        if (els.namaGuru) els.namaGuru.textContent = data.guru?.nama || 'Guru';
-        if (els.infoJamMasuk) els.infoJamMasuk.textContent = formatJam(data.sekolah?.jam_masuk);
-        if (els.infoJamKeluar) els.infoJamKeluar.textContent = formatJam(data.sekolah?.jam_keluar);
+        els.namaGuru.textContent = data.guru?.nama || 'Guru';
+        els.infoJamMasuk.textContent = formatJam(data.sekolah?.jam_masuk);
+        els.infoJamKeluar.textContent = formatJam(data.sekolah?.jam_keluar);
 
+        // Render jadwal sebagai array/list
         if (els.infoJadwal) {
-            if (!data.ada_jadwal_mengajar || !Array.isArray(data.jadwal) || data.jadwal.length === 0) {
-                els.infoJadwal.innerHTML = `
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-red-100 text-red-700 border border-red-300">
-                        Tidak ada jadwal
-                    </span>`;
+            if (data.jadwal && Array.isArray(data.jadwal) && data.jadwal.length > 0) {
+                let htmlJadwal = '<ul class="space-y-1.5 mt-1">';
+                data.jadwal.forEach(j => {
+                    const mapel = j.nama_mapel || '-';
+                    const kelas = j.nama_kelas || '-';
+                    const ruangan = j.ruangan ? ` (${j.ruangan})` : '';
+                    const jamMasuk = formatJam(j.jam_masuk);
+                    const jamPulang = formatJam(j.jam_pulang);
+                    const jamRange = jamMasuk !== '—' && jamPulang !== '—' ? `${jamMasuk} - ${jamPulang}` : jamMasuk;
+                    htmlJadwal += `
+                        <li class="flex items-center justify-between text-slate-600 text-xs py-1 border-b border-slate-100 last:border-0">
+                            <span class="font-semibold"><i class="fa-solid fa-book-open text-indigo-400 mr-1.5"></i>${mapel} (${kelas}${ruangan})</span>
+                            <span class="text-[10px] bg-slate-100 px-2 py-0.5 rounded text-slate-500 font-medium">${jamRange}</span>
+                        </li>`;
+                });
+                htmlJadwal += '</ul>';
+                els.infoJadwal.innerHTML = htmlJadwal;
             } else {
-                els.infoJadwal.innerHTML = data.jadwal.map(j => `
-                    <div class="mb-2 last:mb-0 text-right">
-                        <div class="font-semibold text-slate-800">${j.mata_pelajaran}</div>
-                        <div class="text-xs text-slate-500">${j.kelas ?? '-'} ${j.ruangan ? ' • ' + j.ruangan : ''}</div>
-                        <div class="text-xs text-indigo-600">${formatJam(j.jam_masuk)} - ${formatJam(j.jam_pulang)}</div>
-                    </div>
-                `).join('');
+                els.infoJadwal.innerHTML = '<p class="text-xs text-slate-400 italic">Tidak ada jadwal mengajar hari ini.</p>';
             }
         }
 
         renderStatusBannerDanAksi(data);
 
-        if (els.ringkasanLoading) els.ringkasanLoading.classList.add('hidden');
-        if (els.ringkasanContent) els.ringkasanContent.classList.remove('hidden');
-
-        document.dispatchEvent(new CustomEvent('absensi-status-update', { detail: data }));
+        els.ringkasanLoading.classList.add('hidden');
+        els.ringkasanContent.classList.remove('hidden');
     }
 
     function renderStatusBannerDanAksi(data) {
-        if (!els.statusBanner || !els.aksiArea) return;
-
-        if (data.sudah_ajukan_izin) {
-            aksiAktif = null;
-            const statusLabel = data.status_pengajuan === 'disetujui' ? 'Disetujui' :
-                                data.status_pengajuan === 'ditolak' ? 'Ditolak' :
-                                data.status_pengajuan === 'pending' ? 'Menunggu Persetujuan' : 'Diproses';
-            const statusColor = data.status_pengajuan === 'disetujui' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' :
-                                data.status_pengajuan === 'ditolak' ? 'bg-red-50 border-red-200 text-red-700' :
-                                'bg-amber-50 border-amber-200 text-amber-700';
-            const statusIcon = data.status_pengajuan === 'disetujui' ? 'fa-circle-check' :
-                               data.status_pengajuan === 'ditolak' ? 'fa-circle-xmark' :
-                               'fa-hourglass-half';
-            els.statusBanner.className = `rounded-xl p-4 border flex items-start gap-3 ${statusColor}`;
-            els.statusBanner.innerHTML = `
-                <i class="fa-solid ${statusIcon} text-lg mt-0.5"></i>
-                <div>
-                    <p class="font-semibold">Pengajuan izin/ketidakhadiran terdaftar</p>
-                    <p class="text-sm mt-0.5">Status: <strong>${statusLabel}</strong>. Anda tidak dapat melakukan absen masuk/pulang pada hari ini.</p>
-                </div>`;
-            els.aksiArea.innerHTML = `
-                <div class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 text-slate-500 border border-slate-200 text-sm font-semibold w-full justify-center">
-                    <i class="fa-solid ${statusIcon}"></i> ${statusLabel}
-                </div>`;
-            return;
-        }
-
+        // Tidak ada jadwal mengajar hari ini
         if (!data.ada_jadwal_mengajar) {
             aksiAktif = null;
             els.statusBanner.className = 'rounded-xl p-4 border flex items-start gap-3 bg-slate-50 border-slate-200 text-slate-500';
@@ -285,6 +256,7 @@
             return;
         }
 
+        // Sudah absen masuk & pulang -> lengkap
         if (data.sudah_absen_masuk && data.sudah_absen_pulang) {
             aksiAktif = null;
             const jamMasuk = formatJam(data.absensi?.jam_masuk);
@@ -303,7 +275,9 @@
             return;
         }
 
+        // Belum absen masuk
         if (!data.sudah_absen_masuk) {
+            // Wajah belum terdaftar -> prioritaskan minta daftar dulu
             if (!wajahTerdaftar) {
                 renderWajahBelumTerdaftar();
                 return;
@@ -344,6 +318,7 @@
             return;
         }
 
+        // Sudah absen masuk, belum absen pulang
         if (!wajahTerdaftar) {
             renderWajahBelumTerdaftar();
             return;
@@ -401,166 +376,199 @@
         }
     }
 
+    // ================= Reusable submit-button state controller =================
     const SubmitButtonController = {
         el: null,
         states: {
-            idle: { label: 'Kirim Absen', icon: 'fa-paper-plane', disabled: false, cls: 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white' },
-            detecting: { label: 'Mendeteksi wajah…', icon: 'fa-circle-notch fa-spin', disabled: true, cls: 'bg-indigo-400 text-white cursor-wait' },
-            submitting: { label: 'Mengirim ke server…', icon: 'fa-circle-notch fa-spin', disabled: true, cls: 'bg-indigo-400 text-white cursor-wait' },
-            error: { label: 'Coba Kirim Lagi', icon: 'fa-rotate-right', disabled: false, cls: 'bg-red-500 hover:bg-red-600 active:bg-red-700 text-white' },
-            success: { label: 'Berhasil Dikirim', icon: 'fa-check', disabled: true, cls: 'bg-emerald-500 text-white' },
+            idle: {
+                label: 'Kirim Absen',
+                icon: 'fa-paper-plane',
+                disabled: false,
+                cls: 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white',
+            },
+            detecting: {
+                label: 'Mendeteksi wajah…',
+                icon: 'fa-circle-notch fa-spin',
+                disabled: true,
+                cls: 'bg-indigo-400 text-white cursor-wait',
+            },
+            submitting: {
+                label: 'Mengirim ke server…',
+                icon: 'fa-circle-notch fa-spin',
+                disabled: true,
+                cls: 'bg-indigo-400 text-white cursor-wait',
+            },
+            error: {
+                label: 'Coba Kirim Lagi',
+                icon: 'fa-rotate-right',
+                disabled: false,
+                cls: 'bg-red-500 hover:bg-red-600 active:bg-red-700 text-white',
+            },
+            success: {
+                label: 'Berhasil Dikirim',
+                icon: 'fa-check',
+                disabled: true,
+                cls: 'bg-emerald-500 text-white',
+            },
         },
-        init(el) { this.el = el; },
+        current: 'idle',
+        init(el) {
+            this.el = el;
+        },
         setState(name, labelOverride) {
             const s = this.states[name];
             if (!s || !this.el) return;
+            this.current = name;
             this.el.disabled = s.disabled;
             this.el.className = 'w-full py-3.5 px-4 rounded-xl font-semibold shadow-sm transition-all flex items-center justify-center gap-2 mb-3 ' + s.cls;
             this.el.innerHTML = `<i class="fa-solid ${s.icon}"></i> ${labelOverride || s.label}`;
         },
     };
-    if (els.modalSubmit) SubmitButtonController.init(els.modalSubmit);
+    SubmitButtonController.init(els.modalSubmit);
 
+    // ================= Modal kamera =================
     function openModal(aksi) {
         aksiAktif = aksi;
-        if (els.modalTitle) {
-            els.modalTitle.innerHTML = aksi === 'masuk'
-                ? '<i class="fa-solid fa-camera text-indigo-500"></i> Absen Masuk'
-                : '<i class="fa-solid fa-camera text-indigo-500"></i> Absen Pulang';
-        }
+        els.modalTitle.innerHTML = aksi === 'masuk'
+            ? '<i class="fa-solid fa-camera text-indigo-500"></i> Absen Masuk'
+            : '<i class="fa-solid fa-camera text-indigo-500"></i> Absen Pulang';
 
         resetModalView();
-        if (els.modal) {
-            els.modal.classList.remove('hidden');
-            els.modal.classList.add('flex', 'show');
-        }
+        els.modal.classList.remove('hidden');
+        els.modal.classList.add('flex', 'show');
 
         startCamera();
         startGeolocation();
-        loadFaceApiModels().catch(e => showModalError('Gagal memuat model pendeteksi wajah. Refresh halaman.'));
+        loadFaceApiModels();
     }
 
     function resetModalView() {
-        if (els.modalCameraView) els.modalCameraView.classList.remove('hidden');
-        if (els.modalSuccessView) els.modalSuccessView.classList.add('hidden');
-        if (els.modalSuccessCheck) els.modalSuccessCheck.classList.remove('draw');
-        if (els.modalError) {
-            els.modalError.classList.add('hidden');
-            els.modalError.textContent = '';
-        }
+        els.modalCameraView.classList.remove('hidden');
+        els.modalSuccessView.classList.add('hidden');
+        els.modalSuccessCheck.classList.remove('draw');
+        els.modalError.classList.add('hidden');
+        els.modalError.textContent = '';
         busy = false;
         SubmitButtonController.setState('idle');
     }
 
     function closeModal() {
-        if (els.modal) {
-            els.modal.classList.add('hidden');
-            els.modal.classList.remove('flex', 'show');
-        }
+        els.modal.classList.add('hidden');
+        els.modal.classList.remove('flex', 'show');
         stopCamera();
         stopGeolocation();
-    }
-
-    function updateCameraStatus(text, isWarning = false) {
-        if (!els.cameraStatus) return;
-        els.cameraStatus.textContent = text;
-        els.cameraStatus.className = 'mt-2 text-xs text-center font-medium ' + (isWarning ? 'text-amber-600' : 'text-slate-500');
     }
 
     async function startCamera() {
         updateCameraStatus('Menyiapkan kamera…', true);
         try {
-            // OPTIMASI 2: Minta resolusi sedang (480p cukup untuk absensi wajah)
             mediaStream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: 'user', width: { ideal: 480 }, height: { ideal: 480 } },
+                video: {
+                    facingMode: 'user',
+                    width: { ideal: 640 },
+                    height: { ideal: 640 },
+                },
                 audio: false,
             });
-            if (els.video) {
-                els.video.srcObject = mediaStream;
-                await els.video.play();
-            }
+            els.video.srcObject = mediaStream;
             updateCameraStatus('Kamera aktif. Posisikan wajah lalu tekan "Kirim Absen".', false);
         } catch (err) {
-            console.error('Kamera error:', err);
-            updateCameraStatus('Gagal mengakses kamera. Izinkan akses kamera browser Anda.', true);
-            showModalError('Akses kamera ditolak atau perangkat kamera tidak ditemukan.');
+            console.error(err);
+            updateCameraStatus('Kamera tidak dapat diakses. Izinkan akses kamera lalu coba lagi.', false);
+            showModalError('Akses kamera ditolak atau tidak tersedia.');
         }
     }
 
     function stopCamera() {
         if (mediaStream) {
-            mediaStream.getTracks().forEach(track => track.stop());
+            mediaStream.getTracks().forEach((t) => t.stop());
             mediaStream = null;
         }
-        if (els.video) els.video.srcObject = null;
+        els.video.srcObject = null;
+    }
+
+    function updateCameraStatus(text, spinning) {
+        els.cameraStatus.innerHTML = spinning
+            ? `<i class="fa-solid fa-circle-notch animate-spin text-indigo-500"></i> ${text}`
+            : `<i class="fa-solid fa-face-smile text-indigo-500"></i> ${text}`;
     }
 
     function startGeolocation() {
-        if (!navigator.geolocation) {
-            showGpsStatus(false, 'GPS tidak didukung browser ini');
+        if (!('geolocation' in navigator)) {
+            setGpsState('bad', 'Perangkat tidak mendukung lokasi.');
             return;
         }
-        showGpsStatus(false, 'Mencari lokasi GPS…');
+        setGpsState(null, 'Mencari lokasi…');
         geoWatchId = navigator.geolocation.watchPosition(
             (pos) => {
                 currentPosition = pos.coords;
-                showGpsStatus(true, `Akurasi GPS: ${Math.round(pos.coords.accuracy)}m`);
+                setGpsState('ok', 'Lokasi ditemukan.');
             },
-            (err) => {
+            () => {
                 currentPosition = null;
-                showGpsStatus(false, 'Gagal mengambil lokasi GPS. Pastikan GPS aktif.');
+                setGpsState('bad', 'Izinkan akses lokasi untuk absen.');
             },
-            { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+            { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
         );
     }
 
     function stopGeolocation() {
-        if (geoWatchId !== null) {
+        if (geoWatchId !== null && 'geolocation' in navigator) {
             navigator.geolocation.clearWatch(geoWatchId);
-            geoWatchId = null;
         }
+        geoWatchId = null;
+        currentPosition = null;
     }
 
-    function showGpsStatus(isValid, text) {
-        if (!els.gpsPill || !els.gpsText) return;
+    function setGpsState(state, text) {
+        els.gpsPill.classList.remove('ok', 'bad');
+        els.gpsPill.classList.remove('bg-amber-50', 'border-amber-200', 'text-amber-700', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-700', 'bg-red-50', 'border-red-200', 'text-red-700');
+        if (state === 'ok') {
+            els.gpsPill.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-700');
+        } else if (state === 'bad') {
+            els.gpsPill.classList.add('bg-red-50', 'border-red-200', 'text-red-700');
+        } else {
+            els.gpsPill.classList.add('bg-amber-50', 'border-amber-200', 'text-amber-700');
+        }
         els.gpsText.textContent = text;
-        els.gpsPill.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ' +
-            (isValid ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700');
     }
 
-    function showModalError(msg) {
-        if (!els.modalError) return;
-        els.modalError.textContent = msg;
+    function showModalError(message) {
+        els.modalError.textContent = message;
         els.modalError.classList.remove('hidden');
     }
 
-    async function onSubmitButtonClick() {
-        if (busy) return;
-        busy = true;
+    // ================= Klik tombol -> deteksi wajah -> kirim ke server =================
+    function onSubmitButtonClick(event) {
+        event.preventDefault();
+        if (busy) return; // sudah diproses, cegah klik dobel
+        handleSubmit();
+    }
 
-        if (els.modalError) {
-            els.modalError.classList.add('hidden');
-            els.modalError.textContent = '';
-        }
+    async function handleSubmit() {
+        busy = true;
+        els.modalError.classList.add('hidden');
 
         try {
-            if (!currentPosition) {
-                throw new Error('Lokasi GPS belum didapatkan. Pastikan akses lokasi diizinkan.');
+            if (!modelsReady) {
+                SubmitButtonController.setState('detecting', 'Memuat model…');
+                updateCameraStatus('Memuat model pengenalan wajah…', true);
+                await loadFaceApiModels();
+                if (!modelsReady) {
+                    showModalError('Model pengenalan wajah belum siap. Coba lagi sebentar.');
+                    SubmitButtonController.setState('error');
+                    return;
+                }
+            }
+
+            if (!mediaStream || els.video.readyState < 2) {
+                showModalError('Kamera belum siap. Tunggu sampai video aktif lalu coba lagi.');
+                SubmitButtonController.setState('error');
+                return;
             }
 
             SubmitButtonController.setState('detecting');
-
-            if (!modelsReady) {
-                updateCameraStatus('Memuat model pendeteksi wajah…', true);
-                await loadFaceApiModels();
-            }
-
-            if (!els.video || els.video.readyState < 2) {
-                throw new Error('Video kamera belum siap. Coba beberapa detik lagi.');
-            }
-
-            // OPTIMASI 3: Berikan jeda 50ms agar UI browser sempat merefresh state tombol ("Mendeteksi Wajah")
-            await new Promise(r => setTimeout(r, 50));
+            updateCameraStatus('Mendeteksi wajah…', true);
 
             const detection = await faceapi
                 .detectSingleFace(els.video, DETECTOR_OPTIONS())
@@ -568,62 +576,96 @@
                 .withFaceDescriptor();
 
             if (!detection) {
-                throw new Error('Wajah tidak terdeteksi. Posisikan wajah di tengah kamera dengan pencahayaan cukup.');
+                showModalError('Wajah tidak terdeteksi. Pastikan wajah berada di tengah bingkai dan pencahayaan cukup, lalu tekan tombol lagi.');
+                SubmitButtonController.setState('error');
+                updateCameraStatus('Kamera aktif, menunggu tindakan Anda…', false);
+                return;
             }
 
-            const descriptorArray = Array.from(detection.descriptor);
+            const skor = detection.detection.score;
+            updateCameraStatus(`Wajah terdeteksi (keyakinan ${(skor * 100).toFixed(0)}%)…`, true);
 
-            // OPTIMASI 4: Kompresi foto canvas ke resolusi 480x360 dan JPEG Quality 0.5 (Sangat ringan)
-            const canvas = els.canvas;
-            canvas.width = 480;
-            canvas.height = 360;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(els.video, 0, 0, canvas.width, canvas.height);
-            const fotoBase64 = canvas.toDataURL('image/jpeg', 0.5);
+            if (!currentPosition) {
+                showModalError('Lokasi GPS belum ditemukan. Tunggu sebentar lalu tekan tombol lagi.');
+                SubmitButtonController.setState('error');
+                return;
+            }
 
             SubmitButtonController.setState('submitting');
+            updateCameraStatus('Mengirim absen ke server…', true);
 
-            const payload = {
-                latitude: currentPosition.latitude,
-                longitude: currentPosition.longitude,
-                descriptor: descriptorArray,
-                foto: fotoBase64,
-            };
+            const foto = captureSnapshot();
+            const url = aksiAktif === 'masuk' ? cfg.masukUrl : cfg.pulangUrl;
 
-            const targetUrl = aksiAktif === 'masuk' ? cfg.masukUrl : cfg.pulangUrl;
-            if (!targetUrl) throw new Error('URL endpoint absensi tidak dikonfigurasi.');
-
-            const res = await fetch(targetUrl, {
+            const res = await fetch(url, {
                 method: 'POST',
+                credentials: 'same-origin',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': cfg.csrfToken || '',
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': cfg.csrfToken,
                 },
-                credentials: 'same-origin',
-                body: JSON.stringify(payload),
+                body: JSON.stringify({
+                    latitude: currentPosition.latitude,
+                    longitude: currentPosition.longitude,
+                    descriptor: Array.from(detection.descriptor),
+                    foto,
+                }),
             });
 
-            const result = await res.json();
+            const json = await res.json();
 
             if (!res.ok) {
-                throw new Error(result.message || 'Gagal memproses absensi.');
+                showModalError(json.message || 'Terjadi kesalahan saat memproses absensi.');
+                SubmitButtonController.setState('error');
+                updateCameraStatus('Kamera aktif, menunggu tindakan Anda…', false);
+                return;
             }
 
+            const status = json.data && json.data.status;
+            const label = aksiAktif === 'masuk'
+                ? (status === 'terlambat' ? 'Absen masuk tercatat (Terlambat)' : 'Absen masuk tercatat (Hadir)')
+                : 'Absen pulang tercatat';
+
             SubmitButtonController.setState('success');
-            queueFlash('success', result.message || 'Absensi berhasil dicatat.');
-
-            setTimeout(() => {
-                closeModal();
-                window.location.reload();
-            }, 1200);
-
+            showSuccessAndReload(label, json.message);
         } catch (err) {
-            console.error('Proses absen gagal:', err);
-            showModalError(err.message || 'Terjadi kesalahan sistem.');
+            console.error(err);
+            showModalError('Terjadi kesalahan tak terduga. Coba lagi.');
             SubmitButtonController.setState('error');
+            updateCameraStatus('Kamera aktif, menunggu tindakan Anda…', false);
         } finally {
             busy = false;
         }
     }
+
+    function captureSnapshot() {
+        const video = els.video;
+        const canvas = els.canvas;
+        canvas.width = video.videoWidth || 320;
+        canvas.height = video.videoHeight || 320;
+        const ctx = canvas.getContext('2d');
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        return canvas.toDataURL('image/jpeg', 0.85);
+    }
+
+    function showSuccessAndReload(title, message) {
+        els.modalCameraView.classList.add('hidden');
+        els.modalSuccessView.classList.remove('hidden');
+        els.modalSuccessText.textContent = title;
+        void els.modalSuccessCheck.offsetWidth;
+        els.modalSuccessCheck.classList.add('draw');
+
+        stopCamera();
+        stopGeolocation();
+
+        queueFlash('success', message || title);
+
+        setTimeout(() => {
+            window.location.reload();
+        }, 1400);
+    }
 })();
+

@@ -83,10 +83,11 @@ Route::middleware(['auth', 'role:admin'])->name('admin.')->prefix('admin')->grou
     // Sekolah & Jadwal
     Route::resource('/sekolah', SekolahController::class);
     Route::get('jadwal/cetak-pdf', [AdminJadwalController::class, 'cetakPdf'])->name('jadwal.pdf');
+    Route::get('jadwal/export-excel', [AdminJadwalController::class, 'exportExcel'])->name('jadwal.exportExcel');
     Route::resource('/jadwal', AdminJadwalController::class);
     // Kelas & siswa
     Route::apiresource('/kelas', KelasController::class);
-//  // Gantikan 5 baris Route::get, post, put, delete untuk siswa dengan ini:
+//  // siswa
     Route::resource('siswa', SiswaController::class);
     // Route Mapel
     Route::resource('/mapel',MapelController::class);
@@ -100,6 +101,7 @@ Route::middleware(['auth', 'role:admin'])->name('admin.')->prefix('admin')->grou
 
     Route::get('/pengaturan-sistem', [PengaturanController::class, 'index'])->name('pengaturan.index');
     Route::resource('report-template', ReportTemplateController::class)->except(['show']);
+    // cetak jadwal exel
 });
 
 // --------------------------------------------------------------------------

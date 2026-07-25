@@ -166,7 +166,7 @@ class AbsensiController extends Controller
         $data = $validator->validated();
         $targetTanggal = Carbon::parse($data['tanggal'])->format('Y-m-d');
 
-        // Pastikan guru memiliki jadwal pada hari pengajuan izin
+        // Pastikan guru memiliki jadwal aktif pada hari pengajuan izin
         $jadwals = $this->absensiService->cekJadwalHariIni($guru, Carbon::parse($targetTanggal));
         if ($jadwals->isEmpty()) {
             return response()->json([

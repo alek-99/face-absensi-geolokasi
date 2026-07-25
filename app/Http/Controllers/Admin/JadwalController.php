@@ -14,6 +14,7 @@ use App\Models\Sekolah;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class JadwalController extends Controller
 {
