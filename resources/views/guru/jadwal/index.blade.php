@@ -41,7 +41,7 @@
         <div class="flex-shrink-0 w-28 bg-white dark:bg-[#161615] border border-[#e3e3e0] dark:border-[#3E3E3A] p-3 rounded-xl snap-start">
             <span class="text-[10px] font-bold text-[#706f6c] dark:text-[#A1A09A] uppercase tracking-wider block">Total Sesi</span>
             <div class="text-xl font-black text-[#1b1b18] dark:text-[#EDEDEC] mt-0.5 flex items-baseline gap-1">
-                {{ $statistik['total_jadwal'] }} <span class="text-[10px] font-normal text-[#706f6c]">Jam</span>
+                {{ $statistik['total_jadwal'] }} <span class="text-[10px] font-normal text-[#706f6c]">Sesi</span>
             </div>
         </div>
         <!-- Card 2 -->
@@ -99,7 +99,7 @@
                             </span>
                         </div>
                         
-                        {{-- List Card Item Menggantikan Table --}}
+                        {{-- List Card Item --}}
                         <div class="space-y-3">
                             @foreach($jadwalPerHari[$hari] as $item)
                                 <div class="bg-white dark:bg-[#161615] border border-[#e3e3e0] dark:border-[#3E3E3A] p-4 rounded-xl shadow-sm flex items-center justify-between transition duration-200 active:scale-[0.99] active:bg-slate-50 dark:active:bg-zinc-900">
@@ -109,23 +109,23 @@
                                         <!-- Jam Mengajar -->
                                         <div class="text-xs font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
                                             <i class="fa-regular fa-clock text-[11px]"></i>
-                                            {{ date('H:i', strtotime($item->jam_masuk)) }} - {{ date('H:i', strtotime($item->jam_pulang)) }}
+                                            {{ \Carbon\Carbon::parse($item->jam_masuk)->format('H:i') }} - {{ \Carbon\Carbon::parse($item->jam_pulang)->format('H:i') }}
                                         </div>
-                                        <!-- Mata Pelajaran -->
+                                        <!-- Nama Mata Pelajaran (Relasi Mapel) -->
                                         <h4 class="text-sm font-bold text-[#1b1b18] dark:text-[#EDEDEC] leading-tight">
-                                            {{ $item->mata_pelajaran ?? '-' }}
+                                            {{ $item->mapel->nama_mapel ?? '-' }}
                                         </h4>
-                                        <!-- Ruangan Tempat Mengajar -->
+                                        <!-- Ruangan Kelas (Relasi Kelas) -->
                                         <div class="text-[11px] text-[#706f6c] dark:text-[#A1A09A] flex items-center gap-1">
                                             <i class="fa-solid fa-location-dot text-[10px] text-rose-500"></i>
-                                            {{ $item->ruangan ?? '-' }}
+                                            {{ $item->kelas->ruangan ?? '-' }}
                                         </div>
                                     </div>
 
-                                    <!-- Badge Nama Kelas Kanan -->
+                                    <!-- Badge Nama Kelas Kanan (Relasi Kelas) -->
                                     <div class="flex-shrink-0">
                                         <span class="bg-slate-100 dark:bg-zinc-800 text-[#1b1b18] dark:text-[#EDEDEC] px-3 py-1.5 rounded-lg text-xs font-bold border border-[#e3e3e0] dark:border-[#3E3E3A] shadow-inner tracking-wide">
-                                            {{ $item->kelas ?? '-' }}
+                                            {{ $item->kelas->nama_kelas ?? '-' }}
                                         </span>
                                     </div>
 
@@ -139,7 +139,7 @@
     @endif
 </div>
 
-{{-- Tambahkan style CSS kustom opsional untuk menghilangkan scrollbar bawaan --}}
+{{-- Style CSS kustom opsional untuk menghilangkan scrollbar bawaan --}}
 <style>
     .scrollbar-none::-webkit-scrollbar { display: none; }
     .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }

@@ -36,9 +36,10 @@ class Kelas extends Model
         return $this->hasMany(Siswa::class, 'kelas_id');
     }
 
-    public function jadwal(){
-        return $this->hasOne(Jadwal::class);
-    }
+   // Di model Kelas & Mapel
+public function jadwals() {
+    return $this->hasMany(Jadwal::class);
+}
     /**
      * Boot function untuk auto-update jumlah_siswa pada tabel Kelas
      */

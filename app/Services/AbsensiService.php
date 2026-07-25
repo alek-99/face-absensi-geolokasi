@@ -35,20 +35,18 @@ class AbsensiService
         return KonfigurasiAbsen::first() ?? KonfigurasiAbsen::create([]);
     }
 
+    public function cekJadwalHariIni(Guru $guru, ?Carbon $tanggal = null)
+    {
+        $tanggal ??= now();
+        $hari = $this->namaHariIndonesia($tanggal);
 
-
-public function cekJadwalHariIni(Guru $guru, ?Carbon $tanggal = null)
-{
-    $tanggal ??= now();
-    $hari = $this->namaHariIndonesia($tanggal);
-
-    return Jadwal::with(['mapel', 'kelas'])
-        ->where('guru_id', $guru->id)
-        ->where('hari', $hari)
-        ->where('is_active', true)
-        ->orderBy('jam_masuk', 'asc')
-        ->get();
-}
+        return Jadwal::with(['mapel', 'kelas'])
+            ->where('guru_id', $guru->id)
+            ->where('hari', $hari)
+            ->where('is_active', true)
+            ->orderBy('jam_masuk', 'asc')
+            ->get();
+    }
 
     public function namaHariIndonesia(Carbon $date): string
     {
@@ -88,7 +86,7 @@ public function cekJadwalHariIni(Guru $guru, ?Carbon $tanggal = null)
                 }
             }
         } catch (\Throwable $e) {
-            Log::warning('Gagal mengisolasi pengiriman notifikasi guru: ' . $e->getMessage());
+            Log::warning('Gagal mengirim notifikasi guru: ' . $e->getMessage());
         }
     }
 
@@ -126,7 +124,7 @@ public function cekJadwalHariIni(Guru $guru, ?Carbon $tanggal = null)
 
         $stored = $faceDescriptor->descriptor;
 
-        if (!is_array($stored) || count($stored) !== count($descriptorInput)) {
+        if (!is_array($stored) || count($stored) !== 128 || count($descriptorInput) !== 128) {
             return ['valid' => false, 'confidence' => 0.0, 'message' => 'Format descriptor wajah tidak sesuai.'];
         }
 
@@ -157,20 +155,20 @@ public function cekJadwalHariIni(Guru $guru, ?Carbon $tanggal = null)
                 throw new AbsensiException('Anda tidak memiliki jadwal mengajar hari ini, sehingga tidak bisa absen masuk.');
             }
 
-            $sudahIzin = Absensi::where('guru_id', $guru->id)
+            // Lock the row for this guru+tanggal (creating it as a lockable placeholder if it
+            // doesn't exist yet) so two near-simultaneous absen-masuk requests (double tap,
+            // duplicate network retry, etc.) can't both slip past the checks below and both
+            // write a row / both send a "berhasil" response.
+            $absensi = Absensi::where('guru_id', $guru->id)
                 ->where('tanggal', $today)
-                ->whereIn('status', ['izin', 'sakit', 'cuti', 'tugas_luar'])
-                ->exists();
-            if ($sudahIzin) {
+                ->lockForUpdate()
+                ->first();
+
+            if ($absensi && in_array($absensi->status, ['izin', 'sakit', 'cuti', 'tugas_luar'], true)) {
                 throw new AbsensiException('Anda sudah mengajukan izin/ketidakhadiran untuk hari ini. Tidak dapat melakukan absen masuk.');
             }
 
-            $absensi = Absensi::firstOrNew([
-                'guru_id' => $guru->id,
-                'tanggal' => $today,
-            ]);
-
-            if ($absensi->exists && $absensi->jam_masuk) {
+            if ($absensi && $absensi->jam_masuk) {
                 throw new AbsensiException('Anda sudah melakukan absen masuk hari ini.');
             }
 
@@ -203,6 +201,11 @@ public function cekJadwalHariIni(Guru $guru, ?Carbon $tanggal = null)
             if (!empty($data['foto'])) {
                 $fotoPath = $this->simpanFoto($data['foto'], $guru->id, 'masuk');
             }
+
+            $absensi = $absensi ?: new Absensi([
+                'guru_id' => $guru->id,
+                'tanggal' => $today,
+            ]);
 
             $absensi->fill([
                 'jam_masuk' => $now->format('H:i:s'),
@@ -238,11 +241,13 @@ public function cekJadwalHariIni(Guru $guru, ?Carbon $tanggal = null)
                 throw new AbsensiException('Anda tidak memiliki jadwal mengajar hari ini.');
             }
 
+            // Lock the row so a double-tap on "Absen Pulang" can't record it twice.
             $absensi = Absensi::where('guru_id', $guru->id)
                 ->where('tanggal', $today)
+                ->lockForUpdate()
                 ->first();
 
-            if ($absensi && in_array($absensi->status, ['izin', 'sakit', 'cuti', 'tugas_luar'])) {
+            if ($absensi && in_array($absensi->status, ['izin', 'sakit', 'cuti', 'tugas_luar'], true)) {
                 throw new AbsensiException('Anda sudah mengajukan izin/ketidakhadiran untuk hari ini. Tidak dapat melakukan absen pulang.');
             }
 
@@ -302,105 +307,108 @@ public function cekJadwalHariIni(Guru $guru, ?Carbon $tanggal = null)
         return $result['absensi'];
     }
 
+    public function statusHariIni(Guru $guru): array
+    {
+        $now = now();
+        $hari = $this->namaHariIndonesia($now);
 
-public function statusHariIni(Guru $guru): array
-{
-    $now = now();
-    $hari = $this->namaHariIndonesia($now);
+        $jadwals = Jadwal::with(['mapel', 'kelas'])
+            ->where('guru_id', $guru->id)
+            ->where('hari', $hari)
+            ->where('is_active', true)
+            ->orderBy('jam_masuk')
+            ->get();
 
-    // Ambil jadwal beserta relasi mapel dan kelas sesuai JadwalController
-    $jadwals = Jadwal::with(['mapel', 'kelas'])
-        ->where('guru_id', $guru->id)
-        ->where('hari', $hari)
-        ->where('is_active', true)
-        ->orderBy('jam_masuk')
-        ->get();
+        $adaJadwal = $jadwals->isNotEmpty();
 
-    $adaJadwal = $jadwals->isNotEmpty();
+        $absensi = Absensi::where('guru_id', $guru->id)
+            ->where('tanggal', $now->toDateString())
+            ->first();
 
-    $absensi = Absensi::where('guru_id', $guru->id)
-        ->where('tanggal', $now->toDateString())
-        ->first();
+        $sudahAjukanIzin = $absensi && in_array($absensi->status, ['izin', 'sakit', 'cuti', 'tugas_luar'], true);
+        $statusPengajuan = $absensi?->status_persetujuan;
 
-    $sudahAjukanIzin = $absensi && in_array($absensi->status, ['izin', 'sakit', 'cuti', 'tugas_luar']);
-    $statusPengajuan = $absensi?->status_persetujuan;
+        $bisaAjukanIzin = $adaJadwal && !$absensi;
+        if ($absensi && $absensi->status_persetujuan === 'ditolak') {
+            $bisaAjukanIzin = true;
+        }
 
-    $bisaAjukanIzin = $adaJadwal && !$absensi;
-    if ($absensi && $absensi->status_persetujuan === 'ditolak') {
-        $bisaAjukanIzin = true;
+        $sekolah = $this->getSekolah();
+        $konfig = $this->getKonfigurasi();
+
+        $jamMasukSekolah = Carbon::parse($sekolah->jam_masuk)->setDateFrom($now);
+        $bukaAbsenMasuk = $jamMasukSekolah->copy()->subMinutes($konfig->buka_absen_masuk_menit);
+        $batasTepatWaktu = $jamMasukSekolah->copy()->addMinutes($konfig->toleransi_terlambat_menit);
+
+        $jamKeluarSekolah = Carbon::parse($sekolah->jam_keluar)->setDateFrom($now);
+        $bukaAbsenPulang = $jamKeluarSekolah->copy()->subMinutes($konfig->buka_absen_pulang_menit);
+
+        return [
+            'guru' => [
+                'id' => $guru->id,
+                'nama' => $guru->nama,
+                'nip' => $guru->nip,
+                'foto_profil' => $guru->foto_profil,
+            ],
+            'tanggal' => $now->toDateString(),
+            'hari' => $hari,
+            'ada_jadwal_mengajar' => $adaJadwal,
+            'jadwal' => $jadwals->map(function ($jadwal) {
+                return [
+                    'id' => $jadwal->id,
+                    'mapel_id' => $jadwal->mapel_id,
+                    'nama_mapel' => $jadwal->mapel?->nama_mapel ?? $jadwal->mapel?->nama ?? '-',
+                    'kelas_id' => $jadwal->kelas_id,
+                    'nama_kelas' => $jadwal->kelas?->nama_kelas ?? $jadwal->kelas?->nama ?? '-',
+                    'ruangan' => $jadwal->ruangan ?? null,
+                    'jam_masuk' => $jadwal->jam_masuk,
+                    'jam_pulang' => $jadwal->jam_pulang,
+                ];
+            })->values(),
+            'sekolah' => [
+                'nama_sekolah' => $sekolah->nama_sekolah,
+                'latitude' => $sekolah->latitude,
+                'longitude' => $sekolah->longitude,
+                'radius' => $sekolah->radius,
+                'jam_masuk' => $sekolah->jam_masuk,
+                'jam_keluar' => $sekolah->jam_keluar,
+            ],
+            'time_windows' => [
+                'buka_absen_masuk' => $bukaAbsenMasuk->format('H:i:s'),
+                'batas_tepat_waktu' => $batasTepatWaktu->format('H:i:s'),
+                'buka_absen_pulang' => $bukaAbsenPulang->format('H:i:s'),
+            ],
+            'konfigurasi' => [
+                'buka_absen_masuk_menit' => $konfig->buka_absen_masuk_menit,
+                'toleransi_terlambat_menit' => $konfig->toleransi_terlambat_menit,
+                'buka_absen_pulang_menit' => $konfig->buka_absen_pulang_menit,
+            ],
+            'sudah_absen_masuk' => (bool) ($absensi?->jam_masuk),
+            'sudah_absen_pulang' => (bool) ($absensi?->jam_pulang),
+            'sudah_ajukan_izin' => $sudahAjukanIzin,
+            'status_pengajuan' => $statusPengajuan,
+            'bisa_ajukan_izin' => $bisaAjukanIzin,
+            'absensi' => $absensi,
+        ];
     }
-
-    $sekolah = $this->getSekolah();
-    $konfig = $this->getKonfigurasi();
-
-    // Menggunakan jam_masuk & jam_keluar dari tabel sekolah untuk time windows
-    $jamMasukSekolah = Carbon::parse($sekolah->jam_masuk)->setDateFrom($now);
-    $bukaAbsenMasuk = $jamMasukSekolah->copy()->subMinutes($konfig->buka_absen_masuk_menit);
-    $batasTepatWaktu = $jamMasukSekolah->copy()->addMinutes($konfig->toleransi_terlambat_menit);
-
-    $jamKeluarSekolah = Carbon::parse($sekolah->jam_keluar)->setDateFrom($now);
-    $bukaAbsenPulang = $jamKeluarSekolah->copy()->subMinutes($konfig->buka_absen_pulang_menit);
-
-    return [
-        'guru' => [
-            'id' => $guru->id,
-            'nama' => $guru->nama,
-            'nip' => $guru->nip,
-            'foto_profil' => $guru->foto_profil,
-        ],
-        'tanggal' => $now->toDateString(),
-        'hari' => $hari,
-        'ada_jadwal_mengajar' => $adaJadwal,
-        'jadwal' => $jadwals->map(function ($jadwal) {
-            return [
-                'id' => $jadwal->id,
-                'mapel_id' => $jadwal->mapel_id,
-                'nama_mapel' => $jadwal->mapel?->nama_mapel ?? $jadwal->mapel?->nama ?? '-',
-                'kelas_id' => $jadwal->kelas_id,
-                'nama_kelas' => $jadwal->kelas?->nama_kelas ?? $jadwal->kelas?->nama ?? '-',
-                'ruangan' => $jadwal->ruangan ?? null,
-                'jam_masuk' => $jadwal->jam_masuk,
-                'jam_pulang' => $jadwal->jam_pulang,
-            ];
-        })->values(),
-        'sekolah' => [
-            'nama_sekolah' => $sekolah->nama_sekolah,
-            'latitude' => $sekolah->latitude,
-            'longitude' => $sekolah->longitude,
-            'radius' => $sekolah->radius,
-            'jam_masuk' => $sekolah->jam_masuk,
-            'jam_keluar' => $sekolah->jam_keluar,
-        ],
-        'time_windows' => [
-            'buka_absen_masuk' => $bukaAbsenMasuk->format('H:i:s'),
-            'batas_tepat_waktu' => $batasTepatWaktu->format('H:i:s'),
-            'buka_absen_pulang' => $bukaAbsenPulang->format('H:i:s'),
-        ],
-        'konfigurasi' => [
-            'buka_absen_masuk_menit' => $konfig->buka_absen_masuk_menit,
-            'toleransi_terlambat_menit' => $konfig->toleransi_terlambat_menit,
-            'buka_absen_pulang_menit' => $konfig->buka_absen_pulang_menit,
-        ],
-        'sudah_absen_masuk' => (bool) ($absensi?->jam_masuk),
-        'sudah_absen_pulang' => (bool) ($absensi?->jam_pulang),
-        'sudah_ajukan_izin' => $sudahAjukanIzin,
-        'status_pengajuan' => $statusPengajuan,
-        'bisa_ajukan_izin' => $bisaAjukanIzin,
-        'absensi' => $absensi,
-    ];
-}
 
     protected function simpanFoto(string $base64Image, int $guruId, string $tipe): string
     {
         $ext = 'jpg';
 
         if (preg_match('/^data:image\/(\w+);base64,/', $base64Image, $matches)) {
-            $ext = $matches[1];
+            $ext = strtolower($matches[1]) === 'jpeg' ? 'jpg' : strtolower($matches[1]);
             $base64Image = substr($base64Image, strpos($base64Image, ',') + 1);
         }
 
-        $imageData = base64_decode($base64Image);
-        if ($imageData === false) {
+        // Whitelist the extension regardless of what the client claimed, so a crafted data-URI
+        // prefix can't be used to write a file with an unexpected/executable extension.
+        if (!in_array($ext, ['jpg', 'png'], true)) {
+            $ext = 'jpg';
+        }
+
+        $imageData = base64_decode($base64Image, true);
+        if ($imageData === false || $imageData === '') {
             throw new AbsensiException('Foto absen tidak valid.');
         }
 

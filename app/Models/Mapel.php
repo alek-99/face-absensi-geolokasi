@@ -15,7 +15,8 @@ class Mapel extends Model
         return $this->hasOne(Guru::class);
     }
 
-    public function jadwal(){
-        return $this->hasOne(Jadwal::class);
-    }
+   // Di model Kelas & Mapel
+public function jadwals() {
+    return $this->hasMany(Jadwal::class);
+}
 }

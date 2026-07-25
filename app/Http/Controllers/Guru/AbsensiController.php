@@ -15,6 +15,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
@@ -75,9 +76,13 @@ class AbsensiController extends Controller
         $validator = Validator::make($request->all(), [
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
-            'descriptor' => ['required', 'array', 'min:128', 'max:128'],
-            'descriptor.*' => ['numeric'],
-            'foto' => ['nullable', 'string'],
+            'descriptor' => ['required', 'array', 'size:128'],
+            // face-api descriptor values are always within roughly [-1, 1]; reject anything outside
+            // that range early instead of letting garbage through to the distance calculation.
+            'descriptor.*' => ['numeric', 'between:-1,1'],
+            // foto is a base64 data URL; cap it (~3.7MB decoded) so a malicious client can't send an
+            // arbitrarily large payload and exhaust disk/memory on every absen request.
+            'foto' => ['nullable', 'string', 'max:5000000', 'regex:/^data:image\/(jpe?g|png);base64,/'],
         ]);
 
         if ($validator->fails()) {
@@ -112,9 +117,9 @@ class AbsensiController extends Controller
         $validator = Validator::make($request->all(), [
             'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
-            'descriptor' => ['required', 'array', 'min:128', 'max:128'],
-            'descriptor.*' => ['numeric'],
-            'foto' => ['nullable', 'string'],
+            'descriptor' => ['required', 'array', 'size:128'],
+            'descriptor.*' => ['numeric', 'between:-1,1'],
+            'foto' => ['nullable', 'string', 'max:5000000', 'regex:/^data:image\/(jpe?g|png);base64,/'],
         ]);
 
         if ($validator->fails()) {
@@ -174,33 +179,54 @@ class AbsensiController extends Controller
             ], 422);
         }
 
-        $sudahAjukanHariIni = Absensi::where('guru_id', $guru->id)
-            ->where('tanggal', $targetTanggal)
-            ->whereIn('status', ['izin', 'sakit', 'cuti', 'tugas_luar'])
-            ->whereNotNull('status_persetujuan')
-            ->exists();
+        try {
+            $absensi = DB::transaction(function () use ($guru, $data, $targetTanggal, $request) {
+                // Lock the row for this guru+tanggal (if any) so two concurrent submissions
+                // (e.g. a double tap on "Kirim Pengajuan") can't both pass the checks below.
+                $existing = Absensi::where('guru_id', $guru->id)
+                    ->where('tanggal', $targetTanggal)
+                    ->lockForUpdate()
+                    ->first();
 
-        if ($sudahAjukanHariIni) {
-            return response()->json([
-                'message' => 'Anda sudah mengajukan izin/tidak hadir untuk tanggal ini.'
-            ], 422);
+                if ($existing) {
+                    $sudahDiajukan = in_array($existing->status, ['izin', 'sakit', 'cuti', 'tugas_luar'], true);
+
+                    // Block only if there's an existing pengajuan that hasn't been rejected.
+                    // A previously rejected ('ditolak') pengajuan may be resubmitted.
+                    if ($sudahDiajukan && $existing->status_persetujuan !== 'ditolak') {
+                        throw new AbsensiException('Anda sudah mengajukan izin/tidak hadir untuk tanggal ini.');
+                    }
+
+                    // Guru already clocked in (or has any other recorded attendance) for this date;
+                    // don't silently overwrite/duplicate that record with an izin submission.
+                    if (!$sudahDiajukan && ($existing->jam_masuk || $existing->jam_pulang)) {
+                        throw new AbsensiException('Anda sudah melakukan absen pada tanggal tersebut, sehingga tidak dapat mengajukan izin.');
+                    }
+                }
+
+                $path = null;
+                if ($request->hasFile('bukti_dokumen')) {
+                    $path = $request->file('bukti_dokumen')->store('pengajuan-absensi', 'public');
+                }
+
+                return Absensi::updateOrCreate(
+                    ['guru_id' => $guru->id, 'tanggal' => $targetTanggal],
+                    [
+                        'status' => $data['status'],
+                        'keterangan' => $data['keterangan'],
+                        'bukti_dokumen' => $path,
+                        'status_persetujuan' => 'pending',
+                        'approved_by' => null,
+                        'approved_at' => null,
+                    ]
+                );
+            });
+        } catch (AbsensiException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        } catch (\Throwable $e) {
+            Log::error('Error AbsensiController@ajukanIzin: ' . $e->getMessage());
+            return response()->json(['message' => 'Terjadi kesalahan sistem saat memproses pengajuan izin.'], 500);
         }
-
-        $path = null;
-        if ($request->hasFile('bukti_dokumen')) {
-            $path = $request->file('bukti_dokumen')->store('pengajuan-absensi', 'public');
-        }
-
-        $absensi = Absensi::create([
-            'guru_id' => $guru->id,
-            'tanggal' => $targetTanggal,
-            'status' => $data['status'],
-            'keterangan' => $data['keterangan'],
-            'bukti_dokumen' => $path,
-            'status_persetujuan' => 'pending',
-            'approved_by' => null,
-            'approved_at' => null,
-        ]);
 
         $tanggalFormatted = Carbon::parse($data['tanggal'])->translatedFormat('d M Y');
         $pesanNotif = "{$guru->nama} mengajukan {$data['status']} pada {$tanggalFormatted}.";
@@ -226,7 +252,10 @@ class AbsensiController extends Controller
 
     private function kirimNotifikasiWaAdmin(string $namaGuru, string $status, string $tanggal, string $keterangan): void
     {
-        $adminPhone = env('ADMIN_WA_NUMBER');
+        // NOTE: add 'admin_wa_number' => env('ADMIN_WA_NUMBER') under a `fonnte` key in
+        // config/services.php. env() is not safe to call directly here because it returns
+        // null once `php artisan config:cache` has been run in production.
+        $adminPhone = config('services.fonnte.admin_wa_number');
         if (!$adminPhone) return;
 
         $waMessage = "*PENGAJUAN IZIN BARU*\n\n" .

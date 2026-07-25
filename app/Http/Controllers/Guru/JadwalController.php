@@ -6,86 +6,93 @@ use App\Http\Controllers\Controller;
 use App\Services\ReportPdfService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class JadwalController extends Controller
 {
-     public function __construct(protected ReportPdfService $reportPdfService)
+  protected ReportPdfService $reportPdfService;
+
+    // Inject ReportPdfService
+    public function __construct(ReportPdfService $reportPdfService)
     {
+        $this->reportPdfService = $reportPdfService;
     }
-    public function index(){
-          $guru = Auth::user()->guru;
 
-    abort_if(!$guru, 404);
+    public function index()
+    {
+        $guru = Auth::user()->guru;
 
-    $jadwals = $guru->jadwals()
-        ->where('is_active', true)
-        ->orderByRaw("
-            FIELD(
-                hari,
-                'Senin',
-                'Selasa',
-                'Rabu',
-                'Kamis',
-                'Jumat',
-                'Sabtu'
-            )
-        ")
-        ->orderBy('jam_masuk')
-        ->get();
+        abort_if(!$guru, 404);
 
-    // Kelompokkan berdasarkan hari
-    $jadwalPerHari = $jadwals->groupBy('hari');
+        // Ambil jadwal khusus untuk guru yang login beserta relasi kelas & mapel
+        $jadwals = $guru->jadwals()
+            ->with(['kelas', 'mapel'])
+            ->where('is_active', true)
+            ->orderByRaw("
+                FIELD(
+                    hari,
+                    'Senin',
+                    'Selasa',
+                    'Rabu',
+                    'Kamis',
+                    'Jumat',
+                    'Sabtu'
+                )
+            ")
+            ->orderBy('jam_masuk')
+            ->get();
 
-    // Ringkasan statistik
-    $statistik = [
-        'total_jadwal'  => $jadwals->count(),
-        'total_mapel'   => $jadwals->pluck('mata_pelajaran')->unique()->count(),
-        'hari_mengajar' => $jadwals->pluck('hari')->unique()->count(),
-        'total_kelas'   => $jadwals->pluck('kelas')->unique()->count(),
-        'total_ruangan' => $jadwals->pluck('ruangan')->unique()->count(),
-    ];
+        // Kelompokkan berdasarkan hari
+        $jadwalPerHari = $jadwals->groupBy('hari');
 
-    return view('guru.jadwal.index', compact(
-        'guru',
-        'jadwalPerHari',
-        'statistik'
-    ));
+        // Ringkasan statistik berdasarkan relasi model
+        $statistik = [
+            'total_jadwal'  => $jadwals->count(),
+            'total_mapel'   => $jadwals->pluck('mapel.nama_mapel')->filter()->unique()->count(),
+            'hari_mengajar' => $jadwals->pluck('hari')->unique()->count(),
+            'total_kelas'   => $jadwals->pluck('kelas.nama_kelas')->filter()->unique()->count(),
+            'total_ruangan' => $jadwals->pluck('kelas.ruangan')->filter()->unique()->count(),
+        ];
+
+        return view('guru.jadwal.index', compact(
+            'guru',
+            'jadwalPerHari',
+            'statistik'
+        ));
     }
+
   public function cetak(Request $request)
-{
-    $guru = Auth::user()->guru;
+    {
+        $guru = Auth::user()->guru;
 
-    abort_if(!$guru, 404);
+        abort_if(!$guru, 404);
 
-    $jadwals = $guru->jadwals()
-        ->where('is_active', true)
-        ->orderByRaw("
-            FIELD(
-                hari,
-                'Senin',
-                'Selasa',
-                'Rabu',
-                'Kamis',
-                'Jumat',
-                'Sabtu'
-            )
-        ")
-        ->orderBy('jam_masuk')
-        ->get();
+        $jadwals = $guru->jadwals()
+            ->with(['kelas', 'mapel'])
+            ->where('is_active', true)
+            ->orderByRaw("
+                FIELD(
+                    hari,
+                    'Senin',
+                    'Selasa',
+                    'Rabu',
+                    'Kamis',
+                    'Jumat',
+                    'Sabtu'
+                )
+            ")
+            ->orderBy('jam_masuk')
+            ->get();
 
-    return $this->reportPdfService->stream(
-        slug: 'jadwal-guru',
-
-        view: 'pdf.guru.jadwal',
-
-        data: [
-            'guru' => $guru,
-            'jadwals' => $jadwals,
-        ],
-
-        filename: 'jadwal-' . Str::slug($guru->name ?? 'guru') . '.pdf'
-    );
-}
+        return $this->reportPdfService->stream(
+            view: 'pdf.guru.jadwal',
+            data: [
+                'judul_laporan' => 'JADWAL MENGAJAR GURU',
+                'subjudul'      => 'Agenda Kegiatan Pembelajaran',
+                'guru'          => $guru,
+                'jadwals'       => $jadwals,
+            ],
+            filename: 'jadwal-' . Str::slug($guru->nama ?? 'guru') . '.pdf'
+        );
+    }
 }
