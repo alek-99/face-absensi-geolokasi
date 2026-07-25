@@ -2,10 +2,6 @@
 @section('title', 'Jadwal Mengajar')
 @section('page_title', 'Jadwal Mengajarku')
 @section('content')
-
-<!-- Font Awesome via Cloudflare CDN -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-
 <div class="max-w-md mx-auto px-2 py-4 space-y-6 animate-fade-in">
 
     {{-- Alert Error --}}

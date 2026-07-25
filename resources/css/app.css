@@ -1,12 +1,18 @@
-/* Import Font Awesome Local */
-@import '@fortawesome/fontawesome-free/css/all.min.css';
 
-/* Import Font Instrument Sans Local */
 @import '@fontsource/instrument-sans/400.css';
 @import '@fontsource/instrument-sans/500.css';
 @import '@fontsource/instrument-sans/600.css';
 @import '@fontsource/instrument-sans/700.css';
+@import '@fortawesome/fontawesome-free/css/all.min.css';
 
+/* Direktif Tailwind CSS */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Set Font default ke Body (Opsional) */
+@layer base {
+    body {
+        font-family: 'Instrument Sans', sans-serif;
+    }
+}
