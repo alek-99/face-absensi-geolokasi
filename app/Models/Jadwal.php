@@ -36,4 +36,22 @@ class Jadwal extends Model
     public function kelas(){
         return $this->belongsTo(Kelas::class);
     }
+
+    public function absensiswa()
+    {
+        return $this->hasMany(AbsenSiswa::class);
+    }
+
+    // Tambahkan di App\Models\Jadwal
+public function siswas()
+{
+    return $this->hasManyThrough(
+        Siswa::class,
+        Kelas::class,
+        'id',       // Foreign key di tabel kelas (id)
+        'kelas_id', // Foreign key di tabel siswas
+        'kelas_id', // Local key di tabel jadwals
+        'id'        // Local key di tabel kelas
+    );
+}
 }

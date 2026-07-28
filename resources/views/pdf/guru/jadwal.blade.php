@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>{{ $judul_laporan ?? 'JADWAL MENGAJAR GURU' }}</title>
+    <link rel="icon" href="{{ asset('storage/images/logo.png') }}">
     <style>
         @page {
             margin: {{ $setting->margin_top }}mm {{ $setting->margin_right }}mm {{ $setting->margin_bottom }}mm {{ $setting->margin_left }}mm;

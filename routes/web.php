@@ -14,10 +14,12 @@ use App\Http\Controllers\Admin\ReportTemplateController;
 use App\Http\Controllers\Admin\SekolahController;
 use App\Http\Controllers\Admin\SiswaController;
 use App\Http\Controllers\Guru\AbsensiController as GuruAbsensiController;
+use App\Http\Controllers\Guru\AbsenSiswaController;
 use App\Http\Controllers\Guru\DashboardController as GuruDashboardController;
 use App\Http\Controllers\Guru\FaceDescriptorController;
 use App\Http\Controllers\Guru\JadwalController as GuruJadwalController;
 use App\Http\Controllers\Guru\NotifikasiController as GuruNotifikasiController;
+use App\Http\Controllers\Guru\RekapAbsenSiswaController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PushSubscriptionController;
 use Illuminate\Support\Facades\Route;
@@ -129,7 +131,22 @@ Route::middleware(['auth', 'role:guru'])->name('guru.')->prefix('guru')->group(f
         Route::delete('/', [FaceDescriptorController::class, 'hapus'])->name('hapus');
     });
 
-    // Absensi
+Route::get('/absen-siswa', [AbsenSiswaController::class, 'halaman'])->name('absen-siswa.index');
+    Route::get('/absen-siswa/{jadwal}/form', [AbsenSiswaController::class, 'halamanJadwal'])->name('absen-siswa.form');
+
+    // API Internal Endpoint (Data Fetching & Submisi)
+    Route::prefix('api/absen-siswa')->name('absen-siswa.api.')->group(function () {
+        Route::get('/jadwal-hari-ini', [AbsenSiswaController::class, 'jadwalHariIni'])->name('jadwal-hari-ini');
+        Route::get('/{jadwal}/siswa', [AbsenSiswaController::class, 'daftarSiswa'])->name('daftar-siswa');
+        Route::post('/{jadwal}/simpan', [AbsenSiswaController::class, 'simpan'])->name('simpan');
+    });
+
+    // REKAP ABSENSI SISWA
+    Route::get('/rekap-absen', [RekapAbsenSiswaController::class, 'index'])->name('rekap-absen.index');
+    Route::get('/rekap-absen/{jadwal}', [RekapAbsenSiswaController::class, 'detail'])->name('rekap-absen.detail');
+    Route::get('/rekap-absen/{jadwal}/export', [RekapAbsenSiswaController::class, 'exportExcel'])->name('rekap-absen.export');
+
+    // Absensi Guru
     Route::controller(GuruAbsensiController::class)->group(function () {
         Route::get('/absensi', 'halaman')->name('absensi.index');
         Route::get('/absensi/riwayat-halaman', 'halamanRiwayat')->name('absensi.riwayat.halaman');
