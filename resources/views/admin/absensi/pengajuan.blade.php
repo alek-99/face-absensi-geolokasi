@@ -6,10 +6,10 @@
     <div class="space-y-6 font-sans">
         
         {{-- BREADCRUMB & FILTER SECTION --}}
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white/80 backdrop-blur-md p-6 rounded-2xl shadow-xs border border-slate-200/80">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white/80 backdrop-blur-md p-4  shadow-xs border-l-4 border-green-600">
             <div>
                 <h1 class="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2.5">
-                    <span class="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100/50">
+                    <span class="p-2 bg-green-500 text-white border border-indigo-100/50">
                         <i class="fa-solid fa-clipboard-user text-xl"></i>
                     </span>
                     Daftar Pengajuan Absensi

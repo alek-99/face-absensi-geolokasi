@@ -1,6 +1,7 @@
 @extends('layouts.guru')
 @section('page_title','Notifikasi')
 @section('title', 'Notifikasi Saya')
+
 @section('content')
 <div class="space-y-6">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[#161d3f] p-6 rounded-2xl shadow-md border border-[#242b4d]">
@@ -35,14 +36,20 @@
                     @endif
                     <div>
                         <p class="text-sm {{ is_null($notif->read_at) ? 'font-semibold text-white' : 'text-[#c2c6dc]' }}">{{ $notif->pesan }}</p>
-                        <span class="text-xs text-[#626885] block mt-1"><i class="fa-regular fa-clock mr-1"></i>{{ $notif->created_at->translatedFormat('d M Y, H:i') }} WIB</span>
+                        <span class="text-xs text-[#626885] block mt-1">
+                            <i class="fa-regular fa-clock mr-1"></i>{{ $notif->created_at?->translatedFormat('d M Y, H:i') }} WIB
+                        </span>
                     </div>
                 </div>
                 
                 <div class="text-right shrink-0">
-                    <a href="{{ route('guru.notifikasi.read', $notif->id) }}" class="inline-flex items-center gap-1.5 text-xs font-bold text-[#7367f0] hover:text-white bg-[#7367f0]/10 hover:bg-[#7367f0] px-3 py-2 rounded-xl transition-all">
-                        Lihat Absensi <i class="fa-solid fa-angle-right text-[10px]"></i>
-                    </a>
+                    <!-- Ubah dari tag <a> ke <form> POST agar terlindung dari CSRF -->
+                    <form action="{{ route('guru.notifikasi.read', $notif->id) }}" method="POST">
+                        @csrf
+                        <button type="submit" class="inline-flex items-center gap-1.5 text-xs font-bold text-[#7367f0] hover:text-white bg-[#7367f0]/10 hover:bg-[#7367f0] px-3 py-2 rounded-xl transition-all cursor-pointer">
+                            Lihat Absensi <i class="fa-solid fa-angle-right text-[10px]"></i>
+                        </button>
+                    </form>
                 </div>
             </div>
         @empty

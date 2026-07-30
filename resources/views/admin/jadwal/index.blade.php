@@ -2,31 +2,11 @@
 @section('title', 'Daftar Jadwal Pelajaran')
 
 @section('content')
-<div class="space-y-8">
-    {{-- Header Section --}}
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                <i class="fa-solid fa-calendar-days text-indigo-600"></i> Kelola Jadwal Pelajaran
-            </h1>
-            <p class="text-sm text-gray-500">Atur dan pantau jadwal pelajaran sekolah secara terpusat.</p>
-        </div>
-        <div class="flex flex-wrap gap-2">
-            <a href="{{ route('admin.jadwal.exportExcel') }}" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition shadow-sm flex items-center gap-2">
-                <i class="fa-solid fa-file-excel"></i> Export Excel
-            </a>
-            <a href="{{ route('admin.jadwal.pdf') }}" target="_blank" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-sm font-medium transition shadow-sm flex items-center gap-2">
-                <i class="fa-solid fa-file-pdf"></i> Cetak PDF
-            </a>
-            <button onclick="openCreateModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition shadow-sm flex items-center gap-2">
-                <i class="fa-solid fa-plus"></i> Tambah Jadwal
-            </button>
-        </div>
-    </div>
+<div class="space-y-6">
 
     {{-- Flash Notification --}}
     @if(session('success'))
-        <div class="mb-4 p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl flex items-center justify-between shadow-sm">
+        <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl flex items-center justify-between shadow-sm">
             <div class="flex items-center gap-2">
                 <i class="fa-solid fa-circle-check text-emerald-600"></i>
                 <span>{{ session('success') }}</span>
@@ -38,7 +18,7 @@
     @endif
 
     @if(session('error'))
-        <div class="mb-4 p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl flex items-center justify-between shadow-sm">
+        <div class="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl flex items-center justify-between shadow-sm">
             <div class="flex items-center gap-2">
                 <i class="fa-solid fa-triangle-exclamation text-rose-600"></i>
                 <span>{{ session('error') }}</span>
@@ -49,30 +29,81 @@
         </div>
     @endif
 
-    {{-- Statistik Cards --}}
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-        @php
-            $hariOrder = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-        @endphp
-        @foreach($hariOrder as $hari)
-            @php
-                $stat = isset($statistik) ? $statistik->firstWhere('hari', $hari) : null;
-            @endphp
-            <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:border-indigo-300 hover:shadow transition">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">{{ $hari }}</span>
-                    <i class="fa-regular fa-clock text-gray-400 text-xs"></i>
-                </div>
-                <div class="text-xl font-bold text-gray-900 mb-1">
-                    {{ $stat ? $stat->jumlah_jadwal : 0 }} <span class="text-xs font-normal text-gray-500">Sesi</span>
-                </div>
-                <div class="text-xs text-gray-500 space-y-0.5">
-                    <p><i class="fa-solid fa-user-tie text-[10px] w-3 text-gray-400"></i> {{ $stat ? $stat->jumlah_guru : 0 }} Guru</p>
-                    <p><i class="fa-solid fa-book text-[10px] w-3 text-gray-400"></i> {{ $stat ? $stat->jumlah_mapel : 0 }} Mapel</p>
-                    <p><i class="fa-solid fa-door-open text-[10px] w-3 text-gray-400"></i> {{ $stat ? $stat->jumlah_kelas : 0 }} Kelas</p>
-                </div>
+    {{-- Combined Header, Actions & Stats Card --}}
+    <div class="bg-white border-y border-r border-gray-200 border-l-4 border-l-emerald-600 rounded-r-xl p-5 shadow-sm space-y-6">
+        
+        {{-- Top Row: Header & Action Buttons --}}
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-100 pb-5">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-days text-indigo-600"></i> Kelola Jadwal Pelajaran
+                </h1>
+                <p class="text-sm text-gray-500 mt-0.5">Atur dan pantau jadwal pelajaran sekolah secara terpusat.</p>
             </div>
-        @endforeach
+            <div class="flex flex-wrap gap-2">
+                <a href="{{ route('admin.jadwal.exportExcel') }}" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-file-excel"></i> Export Excel
+                </a>
+                <a href="{{ route('admin.jadwal.pdf') }}" target="_blank" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-sm font-medium transition shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-file-pdf"></i> Cetak PDF
+                </a>
+                <button onclick="openCreateModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Tambah Jadwal
+                </button>
+            </div>
+        </div>
+
+        {{-- Bottom Row: Statistik Hari --}}
+        <div>
+            <h2 class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Ringkasan Sesi per Hari</h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                @php
+                    $hariOrder = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                @endphp
+                @foreach($hariOrder as $hari)
+                    @php
+                        $stat = isset($statistik) ? $statistik->firstWhere('hari', $hari) : null;
+                    @endphp
+                    <div class="bg-gray-50 border border-gray-200/80 rounded-lg p-3 hover:bg-white hover:border-indigo-300 hover:shadow-sm transition">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">{{ $hari }}</span>
+                            <i class="fa-regular fa-clock text-gray-400 text-xs"></i>
+                        </div>
+                        <div class="text-lg font-bold text-gray-900 mb-1">
+                            {{ $stat ? $stat->jumlah_jadwal : 0 }} <span class="text-xs font-normal text-gray-500">Sesi</span>
+                        </div>
+                        <div class="text-[11px] text-gray-500 space-y-0.5">
+                            <p class="truncate"><i class="fa-solid fa-user-tie text-[9px] w-3 text-gray-400"></i> {{ $stat ? $stat->jumlah_guru : 0 }} Guru</p>
+                            <p class="truncate"><i class="fa-solid fa-book text-[9px] w-3 text-gray-400"></i> {{ $stat ? $stat->jumlah_mapel : 0 }} Mapel</p>
+                            <p class="truncate"><i class="fa-solid fa-door-open text-[9px] w-3 text-gray-400"></i> {{ $stat ? $stat->jumlah_kelas : 0 }} Kelas</p>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+    </div>
+
+    {{-- Filter & Search Section --}}
+    <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col md:flex-row gap-3 justify-between items-center">
+        <form action="{{ route('admin.jadwal.index') }}" method="GET" class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            <div class="relative w-full md:w-64">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari mapel, guru, kelas..." class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <select name="hari" onchange="this.form.submit()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="">-- Semua Hari --</option>
+                @foreach(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $h)
+                    <option value="{{ $h }}" {{ request('hari') == $h ? 'selected' : '' }}>{{ $h }}</option>
+                @endforeach
+            </select>
+            <button type="submit" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition">
+                Filter
+            </button>
+            @if(request('search') || request('hari'))
+                <a href="{{ route('admin.jadwal.index') }}" class="text-sm text-rose-600 hover:underline">Reset Filter</a>
+            @endif
+        </form>
     </div>
 
     {{-- Table Section --}}
@@ -175,7 +206,7 @@
             @csrf
             <div>
                 <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Hari</label>
-                <select name="hari" required class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                <select name="hari" required class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     <option value="">-- Pilih Hari --</option>
                     @foreach(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $h)
                         <option value="{{ $h }}">{{ $h }}</option>
@@ -185,16 +216,16 @@
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Jam Masuk</label>
-                    <input type="time" name="jam_masuk" required class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <input type="time" name="jam_masuk" required class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Jam Pulang</label>
-                    <input type="time" name="jam_pulang" required class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <input type="time" name="jam_pulang" required class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
             </div>
             <div>
                 <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Guru Pengajar</label>
-                <select name="guru_id" required class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                <select name="guru_id" required class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     <option value="">-- Pilih Guru --</option>
                     @foreach($gurus as $guru)
                         <option value="{{ $guru->id }}">{{ $guru->nama ?? $guru->user->name ?? 'Guru ID: ' . $guru->id }}</option>
@@ -204,7 +235,7 @@
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Mata Pelajaran</label>
-                    <select name="mapel_id" required class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <select name="mapel_id" required class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <option value="">-- Pilih Mapel --</option>
                         @foreach($mapels as $mapel)
                             <option value="{{ $mapel->id }}">{{ $mapel->nama_mapel }}</option>
@@ -213,7 +244,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Kelas</label>
-                    <select name="kelas_id" required class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <select name="kelas_id" required class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <option value="">-- Pilih Kelas --</option>
                         @foreach($kelases as $kelas)
                             <option value="{{ $kelas->id }}">{{ $kelas->nama_kelas }}</option>
@@ -222,6 +253,7 @@
                 </div>
             </div>
             <div class="flex items-center gap-2 pt-2">
+                <input type="hidden" name="is_active" value="0">
                 <input type="checkbox" name="is_active" id="create_is_active" value="1" checked class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
                 <label for="create_is_active" class="text-sm font-medium text-gray-700">Setel sebagai Jadwal Aktif</label>
             </div>
@@ -247,7 +279,7 @@
             @method('PUT')
             <div>
                 <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Hari</label>
-                <select name="hari" id="edit_hari" required class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                <select name="hari" id="edit_hari" required class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     @foreach(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $h)
                         <option value="{{ $h }}">{{ $h }}</option>
                     @endforeach
@@ -256,16 +288,16 @@
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Jam Masuk</label>
-                    <input type="time" name="jam_masuk" id="edit_jam_masuk" required class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <input type="time" name="jam_masuk" id="edit_jam_masuk" required class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Jam Pulang</label>
-                    <input type="time" name="jam_pulang" id="edit_jam_pulang" required class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <input type="time" name="jam_pulang" id="edit_jam_pulang" required class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
             </div>
             <div>
                 <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Guru Pengajar</label>
-                <select name="guru_id" id="edit_guru_id" required class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                <select name="guru_id" id="edit_guru_id" required class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     @foreach($gurus as $guru)
                         <option value="{{ $guru->id }}">{{ $guru->nama ?? $guru->user->name ?? 'Guru ID: ' . $guru->id }}</option>
                     @endforeach
@@ -274,7 +306,7 @@
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Mata Pelajaran</label>
-                    <select name="mapel_id" id="edit_mapel_id" required class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <select name="mapel_id" id="edit_mapel_id" required class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         @foreach($mapels as $mapel)
                             <option value="{{ $mapel->id }}">{{ $mapel->nama_mapel }}</option>
                         @endforeach
@@ -282,7 +314,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Kelas</label>
-                    <select name="kelas_id" id="edit_kelas_id" required class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <select name="kelas_id" id="edit_kelas_id" required class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         @foreach($kelases as $kelas)
                             <option value="{{ $kelas->id }}">{{ $kelas->nama_kelas }}</option>
                         @endforeach
@@ -290,6 +322,7 @@
                 </div>
             </div>
             <div class="flex items-center gap-2 pt-2">
+                <input type="hidden" name="is_active" value="0">
                 <input type="checkbox" name="is_active" id="edit_is_active" value="1" class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
                 <label for="edit_is_active" class="text-sm font-medium text-gray-700">Setel sebagai Jadwal Aktif</label>
             </div>

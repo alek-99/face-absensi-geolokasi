@@ -5,7 +5,7 @@
 <div class="space-y-8">
     
     <!-- Header Page -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+    <div class="flex flex-col md:flex-row md:items-center p-4 border-l-4 border-green-500 md:justify-between mb-6 gap-4">
         <div>
             <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Data Kelas</h1>
             <p class="text-sm text-slate-500">Kelola daftar kelas, wali kelas, dan informasi ruangan sekolah.</p>

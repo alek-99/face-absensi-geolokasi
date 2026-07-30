@@ -1,10 +1,12 @@
 @extends('layouts.admin')
+
 @section('title', 'Detail Guru & Akun')
+
 @section('content')
 <div class="space-y-6 font-sans">
 
     {{-- BREADCRUMB & BACK BUTTON --}}
-    <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 bg-white/80 backdrop-blur-md p-6 rounded-2xl shadow-xs border border-slate-200/80">
+    <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 bg-white/80 backdrop-blur-md p-6 shadow-xs border-l-4 border-green-600">
         <div>
             <h2 class="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2.5">
                 <span class="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100/50">
@@ -60,14 +62,14 @@
                 @csrf
                 @method('PUT')
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Password Baru</label>
-                    <input type="password" name="password" required placeholder="Minimal 8 karakter"
+                    <label for="reset_password" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Password Baru</label>
+                    <input type="password" id="reset_password" name="password" required placeholder="Minimal 8 karakter"
                            class="w-full px-4 py-2.5 rounded-xl bg-slate-50/50 border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 text-slate-800 focus:outline-none transition-all text-sm">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Konfirmasi Password</label>
-                    <input type="password" name="password_confirmation" required placeholder="Ulangi password baru"
+                    <label for="reset_password_confirmation" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Konfirmasi Password</label>
+                    <input type="password" id="reset_password_confirmation" name="password_confirmation" required placeholder="Ulangi password baru"
                            class="w-full px-4 py-2.5 rounded-xl bg-slate-50/50 border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 text-slate-800 focus:outline-none transition-all text-sm">
                 </div>
 
@@ -119,7 +121,9 @@
                     </h4>
                     <div>
                         <span class="block text-xs font-medium text-slate-400">Tempat, Tanggal Lahir</span>
-                        <span class="text-sm font-semibold text-slate-800 mt-0.5 block">{{ $guru->tempat_lahir }}, {{ \Carbon\Carbon::parse($guru->tanggal_lahir)->translatedFormat('d F Y') }}</span>
+                        <span class="text-sm font-semibold text-slate-800 mt-0.5 block">
+                            {{ $guru->tempat_lahir }}, {{ \Carbon\Carbon::parse($guru->tanggal_lahir)->translatedFormat('d F Y') }}
+                        </span>
                     </div>
                     <div>
                         <span class="block text-xs font-medium text-slate-400">Alamat Rumah</span>
@@ -139,7 +143,9 @@
                         </div>
                         <div>
                             <span class="block text-xs font-medium text-slate-400">Username</span>
-                            <span class="text-sm font-mono font-bold text-slate-700 bg-slate-50 px-2.5 py-0.5 rounded-lg border border-slate-200/80 w-fit block mt-0.5">{{ $guru->user->name ?? '-' }}</span>
+                            <span class="text-sm font-mono font-bold text-slate-700 bg-slate-50 px-2.5 py-0.5 rounded-lg border border-slate-200/80 w-fit block mt-0.5">
+                                {{ $guru->user->name ?? '-' }}
+                            </span>
                         </div>
                     </div>
                     <div>

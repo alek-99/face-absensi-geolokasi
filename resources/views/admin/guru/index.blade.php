@@ -3,32 +3,37 @@
 @section('content')
 <div class="space-y-6 font-sans">
     
-    {{-- HEADER CARD --}}
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white/80 backdrop-blur-md p-6 rounded-2xl shadow-xs border border-slate-200/80">
-        <div class="flex items-center gap-3.5">
-            <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl border border-indigo-100/50">
-                <i class="fa-solid fa-users-gear text-2xl"></i>
+    {{-- HEADER & CONTROL CARD (HEADER, SEARCH, & ACTION TOGETHER) --}}
+    <div class="bg-white p-6 rounded-r-2xl rounded-l-none border-l-4 border-l-emerald-500 shadow-xs border-y border-r border-slate-200/80 space-y-5">
+        
+        {{-- Row 1: Judul Page & Tombol Utama --}}
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="flex items-center gap-3.5">
+                <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl border border-indigo-100/50">
+                    <i class="fa-solid fa-users-gear text-2xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold tracking-tight text-slate-800">Data Guru</h2>
+                    <p class="text-slate-500 text-sm mt-0.5">Kelola data profil dan akun login guru dalam satu panel.</p>
+                </div>
             </div>
-            <div>
-                <h2 class="text-2xl font-bold tracking-tight text-slate-800">Data Guru</h2>
-                <p class="text-slate-500 text-sm mt-0.5">Kelola data profil dan akun login guru dalam satu panel.</p>
-            </div>
-        </div>
-        <div>
-            <a href="{{ route('admin.guru.create') }}" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-xl shadow-xs transition-all text-xs cursor-pointer">
-                <i class="fa-solid fa-plus text-xs"></i>
-                <span>Tambah Guru</span>
-            </a>
-        </div>
-    </div>
 
-    {{-- FILTER FORM --}}
-    <div class="bg-white p-4 rounded-2xl shadow-xs border border-slate-200/80">
+            <div>
+                <a href="{{ route('admin.guru.create') }}" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-xl shadow-xs transition-all text-xs cursor-pointer">
+                    <i class="fa-solid fa-plus text-xs"></i>
+                    <span>Tambah Guru</span>
+                </a>
+            </div>
+        </div>
+
+        <hr class="border-slate-100">
+
+        {{-- Row 2: Form Filter & Pencarian --}}
         <form method="GET" action="{{ route('admin.guru.index') }}" class="flex flex-col sm:flex-row gap-3 items-center">
             <div class="flex-1 w-full relative">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
                 <input type="text" name="search" value="{{ request('search') }}"
-                placeholder="Cari Guru Berdasarkan Nama..." class="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-50/80 border border-slate-200/80 text-slate-700 focus:border-indigo-500 focus:ring-indigo-500/20 focus:outline-none focus:ring-4 transition-all text-sm">
+                       placeholder="Cari Guru Berdasarkan Nama..." class="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-50/80 border border-slate-200/80 text-slate-700 focus:border-indigo-500 focus:ring-indigo-500/20 focus:outline-none focus:ring-4 transition-all text-sm">
             </div>
             
             <select name="status" class="w-full sm:w-auto px-4 py-2 rounded-xl bg-slate-50/80 border border-slate-200/80 text-slate-700 focus:border-indigo-500 focus:ring-indigo-500/20 focus:outline-none focus:ring-4 transition-all text-sm cursor-pointer font-medium">
@@ -65,7 +70,7 @@
             <h3 class="text-slate-800 font-bold text-base">Daftar Guru</h3>
         </div>
         
-       <div class="overflow-x-auto">
+        <div class="overflow-x-auto">
             <table class="w-full text-sm text-left text-slate-600">
                 <thead class="text-xs text-slate-500 uppercase bg-slate-50/70 border-b border-slate-200/80 font-bold tracking-wider">
                     <tr>

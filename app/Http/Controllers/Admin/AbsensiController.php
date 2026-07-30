@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\AbsensiExport;
 use App\Http\Controllers\Controller;
 use App\Models\Absensi;
 use App\Models\Guru;
@@ -143,6 +144,21 @@ class AbsensiController extends Controller
         // ================= END: KIRIM NOTIFIKASI =================
 
         return back()->with('success', 'Pengajuan berhasil disetujui.');
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $bulan = $request->get('bulan', date('m'));
+        $tahun = $request->get('tahun', date('Y'));
+        $guruId = $request->get('guru_id');
+        $status = $request->get('status');
+
+        $fileName = 'REKAP_ABSENSI_GURU_SMK_MAULANA_HASANUDIN_' . $bulan . '_' . $tahun . '.xlsx';
+
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new AbsensiExport($bulan, $tahun, $guruId, $status),
+            $fileName
+        );
     }
 
     /**

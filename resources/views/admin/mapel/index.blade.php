@@ -2,20 +2,20 @@
 @section('title','Daftar Matapelajaran')
 
 @section('content')
-<div class="container mx-auto px-4 py-6 min-h-screen text-slate-800" x-data="{ modalTambah: false }">
+<div class="space-y-6" x-data="{ modalTambah: false }">
     
-    <!-- Header Page -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+    <!-- Header Page (Unified Header Card with Green Left Border) -->
+    <div class="bg-white border border-slate-200 border-l-4 border-l-emerald-500 rounded-r-xl rounded-l-none shadow-sm p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+            <h1 class="text-xl font-bold text-slate-800 flex items-center gap-2.5">
                 <i class="fa-solid fa-book-bookmark text-indigo-600"></i>
                 Daftar Mata Pelajaran
             </h1>
-            <p class="text-sm text-slate-500 mt-1">Kelola data mata pelajaran sekolah di sini.</p>
+            <p class="text-xs text-slate-500 mt-1">Kelola dan atur seluruh data mata pelajaran sekolah dari panel ini.</p>
         </div>
         <div>
             <!-- Button Trigger Modal Tambah -->
-            <button @click="modalTambah = true" type="button" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm transition-all text-sm focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+            <button @click="modalTambah = true" type="button" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-lg shadow-sm transition-all text-xs focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 shrink-0">
                 <i class="fa-solid fa-plus"></i>
                 Tambah Mapel
             </button>
@@ -24,12 +24,12 @@
 
     <!-- Alert Notifikasi Sukses -->
     @if (session('success'))
-        <div class="mb-4 bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg flex items-center justify-between shadow-sm" role="alert">
-            <div class="flex items-center gap-2">
+        <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl flex items-center justify-between shadow-sm" role="alert">
+            <div class="flex items-center gap-2.5">
                 <i class="fa-solid fa-circle-check text-emerald-600"></i>
-                <span class="text-sm font-medium">{{ session('success') }}</span>
+                <span class="text-xs font-medium">{{ session('success') }}</span>
             </div>
-            <button type="button" onclick="this.parentElement.remove()" class="text-emerald-500 hover:text-emerald-700">
+            <button type="button" onclick="this.parentElement.remove()" class="text-emerald-500 hover:text-emerald-700 p-1">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
@@ -37,12 +37,12 @@
 
     <!-- Alert Notifikasi Error Validasi -->
     @if ($errors->any())
-        <div class="mb-4 bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-lg shadow-sm">
-            <div class="flex items-center gap-2 mb-1 font-semibold text-sm text-rose-700">
+        <div class="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl shadow-sm">
+            <div class="flex items-center gap-2 mb-1.5 font-semibold text-xs text-rose-700">
                 <i class="fa-solid fa-triangle-exclamation text-rose-600"></i>
                 <span>Terjadi kesalahan pada inputan:</span>
             </div>
-            <ul class="list-disc list-inside text-xs space-y-1 text-rose-600">
+            <ul class="list-disc list-inside text-xs space-y-1 text-rose-600 pl-2">
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
                 @endforeach
@@ -59,7 +59,7 @@
                         <th class="py-3.5 px-4 text-center w-12">No</th>
                         <th class="py-3.5 px-4">Nama Mata Pelajaran</th>
                         <th class="py-3.5 px-4">Catatan</th>
-                        <th class="py-3.5 px-4 text-center w-48">Aksi</th>
+                        <th class="py-3.5 px-4 text-center w-40">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200">
@@ -75,7 +75,7 @@
                                 {{ $mapel->catatan ?? '-' }}
                             </td>
                             <td class="py-3.5 px-4 text-center">
-                                <div class="flex items-center justify-center gap-1.5">
+                                <div class="flex items-center justify-center gap-1">
                                     <!-- Tombol Detail -->
                                     <button @click="modalDetail = true" type="button" class="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="Detail">
                                         <i class="fa-solid fa-eye"></i>

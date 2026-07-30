@@ -83,12 +83,12 @@ class AbsensiService
     public function kirimNotifikasiKeGuru(Guru $guru, string $title, string $body, ?string $url = null): void
     {
         try {
-            $url = $url ?? url('/guru/absensi');
+            // $url = $url ?? url('/guru/absensi');
 
-            if (!empty($guru->no_hp)) {
-                $pesanWa = "Halo {$guru->nama},\n{$body}";
-                FonnteService::sendMessage($guru->no_hp, $pesanWa);
-            }
+            // if (!empty($guru->no_hp)) {
+            //     $pesanWa = "Halo {$guru->nama},\n{$body}";
+            //     FonnteService::sendMessage($guru->no_hp, $pesanWa);
+            // }
 
             if (method_exists($guru, 'device')) {
                 $devices = $guru->device()->get();

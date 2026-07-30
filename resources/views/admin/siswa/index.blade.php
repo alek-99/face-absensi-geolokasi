@@ -3,54 +3,57 @@
 @section('title', 'Manajemen Data Siswa')
 
 @section('content')
-<div class="space-y-8">
-    <!-- Header Section -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900">Data Siswa</h1>
-            <p class="text-sm text-gray-500">Kelola seluruh data siswa, pencarian, serta pembaruan profil.</p>
+<div class="space-y-6">
+    <!-- Combined Header, Filter, & Action Card (Border Left Hijau, No Rounded) -->
+    <div class="bg-white border-l-4 border-l-emerald-500 border border-gray-200 shadow-sm p-5 rounded-none">
+        <!-- Section 1: Header & Button Tambah -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-5 border-b border-gray-100">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">Data Siswa</h1>
+                <p class="text-sm text-gray-500">Kelola seluruh data siswa, pencarian, serta pembaruan profil.</p>
+            </div>
+            <button onclick="openModal('create')" class="inline-flex items-center justify-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg text-sm transition-all shadow-md shadow-emerald-100">
+                <i class="fa-solid fa-plus mr-2"></i> Tambah Siswa
+            </button>
         </div>
-        <button onclick="openModal('create')" class="inline-flex items-center justify-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-sm transition-all shadow-md shadow-indigo-200 hover:shadow-indigo-300">
-            <i class="fa-solid fa-plus mr-2"></i> Tambah Siswa
-        </button>
-    </div>
 
-    <!-- Filter & Search Bar -->
-    <div class="bg-white rounded-xl p-4 border border-gray-200 mb-6 shadow-sm">
-        <form id="filterForm" class="grid grid-cols-1 md:grid-cols-12 gap-4">
-            <!-- Search -->
-            <div class="md:col-span-6 relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                    <i class="fa-solid fa-magnifying-glass"></i>
+        <!-- Section 2: Filter & Search Bar -->
+        <div class="pt-5">
+            <form id="filterForm" class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                <!-- Search Input -->
+                <div class="md:col-span-6 relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </div>
+                    <input type="text" id="searchInput" name="search" value="{{ request('search') }}" placeholder="Cari Nama, NISN, NIK, NIPD..." 
+                        class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 placeholder-gray-400 transition-all">
                 </div>
-                <input type="text" id="searchInput" name="search" value="{{ request('search') }}" placeholder="Cari Nama, NISN, NIK, NIPD..." 
-                    class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-gray-400 transition-all">
-            </div>
 
-            <!-- Filter Kelas -->
-            <div class="md:col-span-4">
-                <select id="filterKelas" name="kelas_id" class="w-full py-2 px-3 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all">
-                    <option value="">-- Semua Kelas --</option>
-                    @foreach($kelas as $k)
-                        <option value="{{ $k->id }}" {{ request('kelas_id') == $k->id ? 'selected' : '' }}>{{ $k->nama_kelas ?? $k->nama }}</option>
-                    @endforeach
-                </select>
-            </div>
+                <!-- Filter Kelas -->
+                <div class="md:col-span-4">
+                    <select id="filterKelas" name="kelas_id" class="w-full py-2 px-3 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all">
+                        <option value="">-- Semua Kelas --</option>
+                        @foreach($kelas as $k)
+                            <option value="{{ $k->id }}" {{ request('kelas_id') == $k->id ? 'selected' : '' }}>{{ $k->nama_kelas ?? $k->nama }}</option>
+                        @endforeach
+                    </select>
+                </div>
 
-            <!-- Action Filter -->
-            <div class="md:col-span-2 flex gap-2">
-                <button type="submit" class="w-full py-2 px-4 bg-gray-800 hover:bg-gray-900 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center shadow-sm">
-                    <i class="fa-solid fa-filter mr-2"></i> Filter
-                </button>
-                <a href="{{ route('admin.siswa.index') }}" class="py-2 px-3 bg-white hover:bg-gray-100 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg transition-colors flex items-center justify-center shadow-sm" title="Reset Filter">
-                    <i class="fa-solid fa-rotate"></i>
-                </a>
-            </div>
-        </form>
+                <!-- Action Filter Buttons -->
+                <div class="md:col-span-2 flex gap-2">
+                    <button type="submit" class="w-full py-2 px-4 bg-gray-800 hover:bg-gray-900 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center shadow-sm">
+                        <i class="fa-solid fa-filter mr-2"></i> Filter
+                    </button>
+                    <a href="{{ route('admin.siswa.index') }}" class="py-2 px-3 bg-white hover:bg-gray-100 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg transition-colors flex items-center justify-center shadow-sm" title="Reset Filter">
+                        <i class="fa-solid fa-rotate"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
 
-    <!-- Table Section -->
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <!-- Table Section (Tanpa Rounded) -->
+    <div class="bg-white border border-gray-200 shadow-sm overflow-hidden rounded-none">
         <div class="overflow-x-auto">
             <table class="w-full text-sm text-left text-gray-600">
                 <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-200">
@@ -68,7 +71,7 @@
                     <!-- Data di-render lewat AJAX atau Server Fallback -->
                     <tr id="loadingRow" class="hidden">
                         <td colspan="7" class="text-center py-8 text-gray-500">
-                            <i class="fa-solid fa-spinner fa-spin text-2xl text-indigo-600 mb-2"></i>
+                            <i class="fa-solid fa-spinner fa-spin text-2xl text-emerald-600 mb-2"></i>
                             <p>Memuat data...</p>
                         </td>
                     </tr>
@@ -103,24 +106,24 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <!-- Identitas Utama -->
                 <div class="md:col-span-3 border-b border-gray-200 pb-2">
-                    <h4 class="text-sm font-semibold text-indigo-600 uppercase tracking-wider">Identitas Utama</h4>
+                    <h4 class="text-sm font-semibold text-emerald-600 uppercase tracking-wider">Identitas Utama</h4>
                 </div>
 
                 <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">Nama Lengkap <span class="text-red-500">*</span></label>
-                    <input type="text" id="nama" name="nama" required class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
+                    <input type="text" id="nama" name="nama" required class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-emerald-500">
                     <span class="text-red-500 text-xs error-text nama_error"></span>
                 </div>
 
                 <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">NISN <span class="text-red-500">*</span></label>
-                    <input type="text" id="nisn" name="nisn" required class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
+                    <input type="text" id="nisn" name="nisn" required class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-emerald-500">
                     <span class="text-red-500 text-xs error-text nisn_error"></span>
                 </div>
 
                 <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">Kelas <span class="text-red-500">*</span></label>
-                    <select id="kelas_id" name="kelas_id" required class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
+                    <select id="kelas_id" name="kelas_id" required class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-emerald-500">
                         <option value="">-- Pilih Kelas --</option>
                         @foreach($kelas as $k)
                             <option value="{{ $k->id }}">{{ $k->nama_kelas ?? $k->nama }}</option>
@@ -131,18 +134,18 @@
 
                 <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">NIK</label>
-                    <input type="text" id="nik" name="nik" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
+                    <input type="text" id="nik" name="nik" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-emerald-500">
                     <span class="text-red-500 text-xs error-text nik_error"></span>
                 </div>
 
                 <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">NIPD</label>
-                    <input type="text" id="nipd" name="nipd" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
+                    <input type="text" id="nipd" name="nipd" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-emerald-500">
                 </div>
 
                 <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">Jenis Kelamin <span class="text-red-500">*</span></label>
-                    <select id="jenis_kelamin" name="jenis_kelamin" required class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
+                    <select id="jenis_kelamin" name="jenis_kelamin" required class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-emerald-500">
                         <option value="laki-laki">Laki-laki</option>
                         <option value="perempuan">Perempuan</option>
                     </select>
@@ -150,64 +153,64 @@
 
                 <!-- Biodata & Kelahiran -->
                 <div class="md:col-span-3 border-b border-gray-200 pb-2 pt-2">
-                    <h4 class="text-sm font-semibold text-indigo-600 uppercase tracking-wider">Biodata & Kelahiran</h4>
+                    <h4 class="text-sm font-semibold text-emerald-600 uppercase tracking-wider">Biodata & Kelahiran</h4>
                 </div>
 
                 <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">Tempat Lahir</label>
-                    <input type="text" id="tempat_lahir" name="tempat_lahir" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
+                    <input type="text" id="tempat_lahir" name="tempat_lahir" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-emerald-500">
                 </div>
 
                 <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">Tanggal Lahir</label>
-                    <input type="date" id="tanggal_lahir" name="tanggal_lahir" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
+                    <input type="date" id="tanggal_lahir" name="tanggal_lahir" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-emerald-500">
                 </div>
 
                 <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">Agama</label>
-                    <input type="text" id="agama" name="agama" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
+                    <input type="text" id="agama" name="agama" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-emerald-500">
                 </div>
 
                 <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">No. HP/WA</label>
-                    <input type="text" id="no_hp" name="no_hp" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
+                    <input type="text" id="no_hp" name="no_hp" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-emerald-500">
                 </div>
 
                 <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">Sekolah Asal</label>
-                    <input type="text" id="sekolah_asal" name="sekolah_asal" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
+                    <input type="text" id="sekolah_asal" name="sekolah_asal" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-emerald-500">
                 </div>
 
                 <div class="md:col-span-3">
                     <label class="block text-xs font-medium text-gray-700 mb-1">Alamat</label>
-                    <textarea id="alamat" name="alamat" rows="2" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500"></textarea>
+                    <textarea id="alamat" name="alamat" rows="2" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-emerald-500"></textarea>
                 </div>
 
                 <!-- Data Orang Tua -->
                 <div class="md:col-span-3 border-b border-gray-200 pb-2 pt-2">
-                    <h4 class="text-sm font-semibold text-indigo-600 uppercase tracking-wider">Data Orang Tua</h4>
+                    <h4 class="text-sm font-semibold text-emerald-600 uppercase tracking-wider">Data Orang Tua</h4>
                 </div>
 
                 <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">Nama Ayah</label>
-                    <input type="text" id="nama_ayah" name="nama_ayah" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
+                    <input type="text" id="nama_ayah" name="nama_ayah" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-emerald-500">
                 </div>
 
                 <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">Pekerjaan Ayah</label>
-                    <input type="text" id="pekerjaan_ayah" name="pekerjaan_ayah" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
+                    <input type="text" id="pekerjaan_ayah" name="pekerjaan_ayah" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-emerald-500">
                 </div>
 
                 <div class="hidden md:block"></div>
 
                 <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">Nama Ibu</label>
-                    <input type="text" id="nama_ibu" name="nama_ibu" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
+                    <input type="text" id="nama_ibu" name="nama_ibu" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-emerald-500">
                 </div>
 
                 <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">Pekerjaan Ibu</label>
-                    <input type="text" id="pekerjaan_ibu" name="pekerjaan_ibu" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-indigo-500">
+                    <input type="text" id="pekerjaan_ibu" name="pekerjaan_ibu" class="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-800 focus:ring-1 focus:ring-emerald-500">
                 </div>
             </div>
 
@@ -216,7 +219,7 @@
                 <button type="button" onclick="closeModal('formModal')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium rounded-lg transition-colors">
                     Batal
                 </button>
-                <button type="submit" id="btnSave" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center shadow-sm">
+                <button type="submit" id="btnSave" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center shadow-sm">
                     <i class="fa-solid fa-floppy-disk mr-2"></i> Simpan
                 </button>
             </div>
@@ -239,13 +242,13 @@
 
         <!-- Body Detail -->
         <div class="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
-            <div class="flex items-center gap-4 bg-indigo-50/50 p-4 rounded-lg border border-indigo-100">
-                <div class="w-16 h-16 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-2xl font-bold border border-indigo-200">
+            <div class="flex items-center gap-4 bg-emerald-50/50 p-4 rounded-lg border border-emerald-100">
+                <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl font-bold border border-emerald-200">
                     <i class="fa-solid fa-user-graduate"></i>
                 </div>
                 <div>
                     <h2 id="show_nama" class="text-xl font-bold text-gray-900">-</h2>
-                    <p class="text-sm font-medium text-indigo-600" id="show_kelas">-</p>
+                    <p class="text-sm font-medium text-emerald-600" id="show_kelas">-</p>
                     <p class="text-xs text-gray-500" id="show_nisn_nik">-</p>
                 </div>
             </div>
@@ -297,7 +300,6 @@
         </div>
     </div>
 </div>
-
 
 <script>
     const csrfToken = '{{ csrf_token() }}';
@@ -364,7 +366,7 @@
                         <div class="text-[11px] text-gray-500">NIK: ${siswa.nik || '-'}</div>
                     </td>
                     <td class="px-4 py-3">
-                        <span class="px-2.5 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-md text-xs font-medium">
+                        <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md text-xs font-medium">
                             ${siswa.kelas ? (siswa.kelas.nama_kelas || siswa.kelas.nama) : '-'}
                         </span>
                     </td>
@@ -399,7 +401,7 @@
         let linksHtml = '';
         data.links.forEach(link => {
             if (link.url) {
-                const activeClass = link.active ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-700 hover:bg-gray-100 border-gray-300';
+                const activeClass = link.active ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-gray-700 hover:bg-gray-100 border-gray-300';
                 linksHtml += `<button onclick="loadData('${link.url}')" class="px-3 py-1 text-xs rounded-md border ${activeClass} transition-colors">${link.label}</button>`;
             } else {
                 linksHtml += `<span class="px-3 py-1 text-xs rounded-md border border-gray-200 text-gray-400 bg-gray-50">${link.label}</span>`;

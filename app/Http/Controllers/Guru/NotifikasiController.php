@@ -14,10 +14,14 @@ class NotifikasiController extends Controller
      */
     public function index()
     {
-        // Mendapatkan ID guru dari user yang sedang login
-        $guruId = Auth::user()->guru->id;
+        $guru = Auth::user()?->guru;
 
-        $notifikasis = NotifikasiGuru::where('guru_id', $guruId)
+        // Cegah error jika user tidak memiliki profil guru
+        if (!$guru) {
+            abort(403, 'Akses ditolak. Profil guru tidak ditemukan.');
+        }
+
+        $notifikasis = NotifikasiGuru::where('guru_id', $guru->id)
             ->with('absensi')
             ->latest()
             ->paginate(15);
@@ -28,32 +32,34 @@ class NotifikasiController extends Controller
     /**
      * Tandai satu notifikasi telah dibaca lalu arahkan ke halaman riwayat absen
      */
- public function read(NotifikasiGuru $notifikasi)
-{
-    $user = Auth::user();
+    public function read(NotifikasiGuru $notifikasi)
+    {
+        $guruId = Auth::user()?->guru?->id;
 
-    // 1. Pastikan user punya relasi guru dan ID-nya cocok
-    // Gunakan ?-> (nullsafe operator) agar aman jika $user->guru bernilai null
-    $guruId = $user->guru?->id;
+        // Otorisasi sederhana: Pastikan notifikasi milik guru yang sedang login
+        if (!$guruId || (string) $notifikasi->guru_id !== (string) $guruId) {
+            abort(403, 'Aksi tidak sah.');
+        }
 
-    if (!$guruId || (string) $notifikasi->guru_id !== (string) $guruId) {
-        abort(403, 'Aksi tidak sah.');
+        // Tandai sudah dibaca jika belum
+        if (is_null($notifikasi->read_at)) {
+            $notifikasi->update(['read_at' => now()]);
+        }
+
+        return redirect()->route('guru.riwayat-absen.index') // Disarankan gunakan route name jika ada
+            ->with('info', $notifikasi->pesan);
     }
-
-    // 2. Tandai sudah dibaca jika belum
-    if (is_null($notifikasi->read_at)) {
-        $notifikasi->update(['read_at' => now()]);
-    }
-
-    return redirect('/guru/riwayat-absen')->with('info', $notifikasi->pesan);
-}
 
     /**
      * Tandai semua notifikasi guru sebagai dibaca sekaligus
      */
     public function readAll()
     {
-        $guruId = Auth::user()->guru->id;
+        $guruId = Auth::user()?->guru?->id;
+
+        if (!$guruId) {
+            abort(403, 'Akses ditolak.');
+        }
 
         NotifikasiGuru::where('guru_id', $guruId)
             ->whereNull('read_at')

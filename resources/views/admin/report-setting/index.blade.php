@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title','Pengaturan PDF')
+@section('title', 'Pengaturan PDF')
 @section('content')
 <div class="space-y-6">
     {{-- BAR HEADER & AKSI --}}

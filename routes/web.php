@@ -76,12 +76,13 @@ Route::middleware(['auth', 'role:admin'])->name('admin.')->prefix('admin')->grou
     Route::controller(AdminAbsensiController::class)->group(function () {
         Route::get('/pengajuan-absensi', 'index')->name('absensi.pengajuan');
         Route::get('/absensi', 'dataAbsen')->name('absensi.index');
-        Route::get('/absensi/cetak-pdf', 'cetakPdf')->name('absensi.cetak-pdf');
         Route::get('/absensi/{absensi}', 'show')->name('absensi.show');
         Route::post('/absensi/{absensi}/approve', 'approve')->name('absensi.approve');
         Route::post('/absensi/{absensi}/reject', 'reject')->name('absensi.reject');
     });
 
+    // Route Cetak Excel baru
+    Route::get('/absensi/export-excel', [AdminAbsensiController::class, 'exportExcel'])->name('absensi.export-excel');
     // Sekolah & Jadwal
     Route::resource('/sekolah', SekolahController::class);
     Route::get('jadwal/cetak-pdf', [AdminJadwalController::class, 'cetakPdf'])->name('jadwal.pdf');

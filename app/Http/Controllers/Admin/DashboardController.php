@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Absensi;
 use App\Models\Guru;
 use App\Models\Jadwal;
+use App\Models\Kelas;
+use App\Models\Mapel;
+use App\Models\Siswa;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -15,10 +18,9 @@ class DashboardController extends Controller
 {
     public function index()
     {
-      // 1. DATA UNTUK GRAFIK MINGGUAN (Line / Bar Chart)
-        // Mengambil data 7 hari terakhir
-        $tujuhHariLalu = Carbon::now()->subDays(6)->format('Y-m-d');
-        $hariIni = Carbon::now()->format('Y-m-d');
+        // 1. DATA UNTUK GRAFIK MINGGUAN (7 Hari Terakhir)
+        $startDate = Carbon::now()->subDays(6)->startOfDay();
+        $endDate = Carbon::now()->endOfDay();
 
         $trenAbsensiRaw = Absensi::select(
                 'tanggal',
@@ -26,34 +28,44 @@ class DashboardController extends Controller
                 DB::raw("SUM(CASE WHEN status IN ('izin', 'sakit', 'cuti', 'tugas_luar') THEN 1 ELSE 0 END) as total_absen"),
                 DB::raw("SUM(CASE WHEN status = 'alpha' THEN 1 ELSE 0 END) as total_alpha")
             )
-            ->whereBetween('tanggal', [$tujuhHariLalu, $hariIni])
+            ->whereBetween('tanggal', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
             ->groupBy('tanggal')
-            ->orderBy('tanggal', 'asc')
-            ->get();
+            ->get()
+            ->keyBy(function ($item) {
+                return Carbon::parse($item->tanggal)->format('Y-m-d');
+            });
 
-        // Formatting data agar siap dibaca oleh Javascript Chart.js
+        // Loop 7 hari presisi agar hari tanpa data tetap terisi nilai 0
         $chartLabels = [];
         $chartDataMasuk = [];
         $chartDataAbsen = [];
         $chartDataAlpha = [];
 
-        foreach ($trenAbsensiRaw as $data) {
-            // Mengubah format tanggal menjadi nama hari (contoh: "Senin", "Selasa")
-            $chartLabels[] = Carbon::parse($data->tanggal)->translatedFormat('l'); 
-            $chartDataMasuk[] = (int) $data->total_masuk;
-            $chartDataAbsen[] = (int) $data->total_absen;
-            $chartDataAlpha[] = (int) $data->total_alpha;
+        for ($i = 6; $i >= 0; $i--) {
+            $date = Carbon::now()->subDays($i);
+            $dateKey = $date->format('Y-m-d');
+
+            $chartLabels[] = $date->translatedFormat('l (d/m)');
+
+            if (isset($trenAbsensiRaw[$dateKey])) {
+                $chartDataMasuk[] = (int) $trenAbsensiRaw[$dateKey]->total_masuk;
+                $chartDataAbsen[] = (int) $trenAbsensiRaw[$dateKey]->total_absen;
+                $chartDataAlpha[] = (int) $trenAbsensiRaw[$dateKey]->total_alpha;
+            } else {
+                $chartDataMasuk[] = 0;
+                $chartDataAbsen[] = 0;
+                $chartDataAlpha[] = 0;
+            }
         }
 
-
         // 2. DATA UNTUK RATIO HARI INI (Doughnut / Pie Chart)
+        $hariIni = Carbon::now()->format('Y-m-d');
         $statusHariIniRaw = Absensi::select('status', DB::raw('count(*) as total'))
             ->whereDate('tanggal', $hariIni)
             ->groupBy('status')
             ->pluck('total', 'status')
             ->toArray();
 
-        // Pastikan semua status memiliki nilai default 0 jika belum ada data hari ini
         $statusList = ['hadir', 'terlambat', 'izin', 'sakit', 'cuti', 'tugas_luar', 'alpha'];
         $chartPieData = [];
         
@@ -61,12 +73,13 @@ class DashboardController extends Controller
             $chartPieData[] = $statusHariIniRaw[$status] ?? 0;
         }
 
-
-        // 3. RETURNING DATA KE VIEW
-        // Sertakan juga variable counter statistik lama Anda di sini
-        $totalGuru = Guru::count(); 
-        $totalJadwal = Jadwal::count(); // Sesuaikan nama model Anda
+        // 3. STATISTIK COUNTER
+        $totalGuru     = Guru::count(); 
+        $totalJadwal   = Jadwal::count();
         $totalPengguna = User::count();
+        $totalSiswa    = Siswa::count();
+        $totalMapel    = Mapel::count();
+        $totalKelas    = Kelas::count();
 
         return view('admin.dashboard', compact(
             'totalGuru', 
@@ -76,7 +89,10 @@ class DashboardController extends Controller
             'chartDataMasuk',
             'chartDataAbsen',
             'chartDataAlpha',
-            'chartPieData'
+            'chartPieData',
+            'totalKelas',
+            'totalMapel',
+            'totalSiswa'
         ));
     }
 }
