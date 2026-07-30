@@ -21,7 +21,7 @@ use App\Http\Controllers\Guru\JadwalController as GuruJadwalController;
 use App\Http\Controllers\Guru\NotifikasiController as GuruNotifikasiController;
 use App\Http\Controllers\Guru\RekapAbsenSiswaController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\PushSubscriptionController;
+// use App\Http\Controllers\PushSubscriptionController;
 use Illuminate\Support\Facades\Route;
 
 // --------------------------------------------------------------------------
@@ -48,9 +48,8 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Web Push Subscriptions
-    Route::post('/save-push-subscription', [PushSubscriptionController::class, 'save'])
-        ->name('save.push.subscription');
+    // // Web Push Subscriptions
+    
 });
 
 // --------------------------------------------------------------------------
@@ -119,7 +118,8 @@ Route::middleware(['auth', 'role:guru'])->name('guru.')->prefix('guru')->group(f
         Route::get('/{id}/read', 'read')->name('read');
         Route::post('/read-all', 'readAll')->name('readAll');
     });
-
+    Route::post('/save-push-subscription', [App\Http\Controllers\PushSubscriptionController::class, 'save'])
+        ->name('push-subscription.save');
     // Jadwal
     Route::get('jadwal', [GuruJadwalController::class, 'index'])->name('jadwal.index');
     Route::get('jadwal/cetak', [GuruJadwalController::class, 'cetak'])->name('jadwal.cetak');

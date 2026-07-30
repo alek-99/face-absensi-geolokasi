@@ -55,12 +55,12 @@
     </div>
 </div>
 
-{{-- MODAL KAMERA (Gaya Bottom Sheet Mobile-First) --}}
-<div id="camera-modal" class="hidden fixed inset-0 bg-black/60 z-50 items-end sm:items-center justify-center backdrop-blur-xs transition-all duration-300">
-    <div class="bg-white dark:bg-[#161615] w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl overflow-hidden shadow-2xl border-t sm:border border-[#e3e3e0] dark:border-[#3E3E3A] transform transition-all duration-300 translate-y-0 max-h-[92vh] flex flex-col">
+{{-- MODAL KAMERA (Posisi Tengah Responsif & Aman dari Bottom Nav) --}}
+<div id="camera-modal" class="hidden fixed inset-0 bg-black/60 z-50 items-center justify-center p-4 sm:p-6 backdrop-blur-xs transition-all duration-300">
+    <div class="bg-white dark:bg-[#161615] w-full sm:max-w-md rounded-2xl overflow-hidden shadow-2xl border border-[#e3e3e0] dark:border-[#3E3E3A] flex flex-col max-h-[85vh] my-auto">
         
         {{-- Header Modal --}}
-        <div class="px-5 py-4 border-b border-[#e3e3e0] dark:border-[#3E3E3A] flex justify-between items-center bg-gray-50 dark:bg-zinc-900/40">
+        <div class="px-5 py-4 border-b border-[#e3e3e0] dark:border-[#3E3E3A] flex justify-between items-center bg-gray-50 dark:bg-zinc-900/40 shrink-0">
             <div class="flex items-center gap-2">
                 <div class="w-2 h-2 bg-indigo-600 dark:bg-indigo-400 rounded-full animate-ping"></div>
                 <h3 class="font-bold text-gray-800 dark:text-[#EDEDEC] text-sm">Pindai Wajah Anda</h3>
@@ -68,16 +68,16 @@
             <button id="btn-close-modal" class="text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 p-1.5 rounded-full transition text-xl leading-none cursor-pointer">&times;</button>
         </div>
 
-        {{-- Area Kamera --}}
-        <div class="p-5 flex-1 overflow-y-auto space-y-4">
+        {{-- Area Kamera (Scrollable jika layar pendek) --}}
+        <div class="p-4 sm:p-5 flex-1 overflow-y-auto space-y-3 sm:space-y-4">
             <div class="relative w-full aspect-[4/3] bg-black rounded-2xl overflow-hidden border border-[#e3e3e0] dark:border-[#3E3E3A] shadow-inner">
                 
                 {{-- Bingkai Pembantu Posisi Wajah --}}
-                <div class="absolute inset-8 border-2 border-dashed border-indigo-500/30 rounded-2xl pointer-events-none z-20">
-                    <div class="absolute top-0 left-0 w-5 h-5 border-t-4 border-l-4 border-indigo-600 dark:border-indigo-400 rounded-tl-md"></div>
-                    <div class="absolute top-0 right-0 w-5 h-5 border-t-4 border-r-4 border-indigo-600 dark:border-indigo-400 rounded-tr-md"></div>
-                    <div class="absolute bottom-0 left-0 w-5 h-5 border-b-4 border-l-4 border-indigo-600 dark:border-indigo-400 rounded-bl-md"></div>
-                    <div class="absolute bottom-0 right-0 w-5 h-5 border-b-4 border-r-4 border-indigo-600 dark:border-indigo-400 rounded-br-md"></div>
+                <div class="absolute inset-6 sm:inset-8 border-2 border-dashed border-indigo-500/30 rounded-2xl pointer-events-none z-20">
+                    <div class="absolute top-0 left-0 w-4 h-4 sm:w-5 sm:h-5 border-t-4 border-l-4 border-indigo-600 dark:border-indigo-400 rounded-tl-md"></div>
+                    <div class="absolute top-0 right-0 w-4 h-4 sm:w-5 sm:h-5 border-t-4 border-r-4 border-indigo-600 dark:border-indigo-400 rounded-tr-md"></div>
+                    <div class="absolute bottom-0 left-0 w-4 h-4 sm:w-5 sm:h-5 border-b-4 border-l-4 border-indigo-600 dark:border-indigo-400 rounded-bl-md"></div>
+                    <div class="absolute bottom-0 right-0 w-4 h-4 sm:w-5 sm:h-5 border-b-4 border-r-4 border-indigo-600 dark:border-indigo-400 rounded-br-md"></div>
                 </div>
 
                 {{-- Loader Internal Kamera --}}
@@ -93,16 +93,16 @@
             </div>
 
             {{-- Alert Informasi --}}
-            <div class="flex gap-2.5 bg-amber-50 dark:bg-amber-950/20 border border-amber-200/50 dark:border-amber-900/30 p-3.5 rounded-xl">
+            <div class="flex gap-2.5 bg-amber-50 dark:bg-amber-950/20 border border-amber-200/50 dark:border-amber-900/30 p-3 rounded-xl">
                 <i class="fa-solid fa-circle-info text-amber-600 dark:text-amber-500 text-xs shrink-0 mt-0.5"></i>
                 <p class="text-[11px] text-amber-800 dark:text-amber-400/90 leading-relaxed">
-                    Posisikan wajah tepat di tengah bingkai. Hindari penggunaan masker, topi, atau kacamata hitam, serta pastikan pencahayaan ruangan mencukupi.
+                    Posisikan wajah di tengah bingkai. Pastikan pencahayaan cukup dan hindari masker atau kacamata hitam.
                 </p>
             </div>
         </div>
 
-        {{-- Aksi Modal --}}
-        <div class="px-5 py-4 bg-gray-50 dark:bg-zinc-900/40 border-t border-[#e3e3e0] dark:border-[#3E3E3A] flex gap-3">
+        {{-- Aksi Modal (Sticky / Tetap di Bawah Modal) --}}
+        <div class="px-5 py-4 bg-gray-50 dark:bg-zinc-900/40 border-t border-[#e3e3e0] dark:border-[#3E3E3A] flex gap-3 shrink-0 pb-6 sm:pb-4">
             <button id="btn-cancel" class="flex-1 bg-white dark:bg-zinc-900 hover:bg-gray-100 dark:hover:bg-zinc-800 text-[#706f6c] dark:text-[#A1A09A] font-bold py-3 rounded-xl text-xs transition border border-[#e3e3e0] dark:border-[#3E3E3A] cursor-pointer">
                 Batal
             </button>

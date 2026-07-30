@@ -8,23 +8,33 @@
     {{-- PWA Setup --}}
     <meta name="theme-color" content="#2563eb">
     <link rel="manifest" href="{{ asset('manifest.json') }}">
-    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" href="{{ asset('icons/icon-192x192.png') }}">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <title>SIAFI - Sistem Absensi Face ID</title>
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Google Fonts (Instrument Sans) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+
     <!-- Vite (Tailwind CSS & JS) -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="bg-[#FDFDFC] dark:bg-[#0a0a0a] text-[#1b1b18] dark:text-[#EDEDEC] flex items-center justify-center min-h-screen p-6 font-['Instrument_Sans',sans-serif]">
+<body class="bg-[#FDFDFC] dark:bg-[#0a0a0a] text-[#1b1b18] dark:text-[#EDEDEC] flex items-center justify-center min-h-screen p-6 font-['Instrument_Sans',sans-serif] antialiased">
 
     <div class="w-full max-w-md bg-white dark:bg-[#161615] border border-[#e3e3e0] dark:border-[#3E3E3A] p-8 rounded-2xl shadow-[0px_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0px_8px_30px_rgb(0,0,0,0.2)] flex flex-col items-center relative overflow-hidden group">
         
         <!-- Ornamen Latar Belakang (Aksen Modern) -->
-        <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl dark:bg-blue-500/5"></div>
-        <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl dark:bg-emerald-500/5"></div>
+        <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl dark:bg-blue-500/5 pointer-events-none"></div>
+        <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl dark:bg-emerald-500/5 pointer-events-none"></div>
 
         <!-- Branding / Logo -->
         <div class="text-center z-10">
@@ -33,8 +43,11 @@
                 <div class="w-20 h-20 bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center text-3xl mx-auto shadow-sm">
                     <i class="fa-solid fa-user-shield"></i>
                 </div>
-                <!-- Sembunyikan container icon di atas lewat JS jika gambar asli berhasil dimuat -->
-                <img src="{{ asset('storage/images/logo.png') }}" alt="Logo SIAFI" class="absolute top-0 left-0 w-20 h-20 mx-auto object-contain bg-[#FDFDFC] dark:bg-[#0a0a0a] rounded-2xl" onerror="this.style.display='none'">
+                <!-- Gambar Logo -->
+                <img src="{{ asset('storage/images/logo.png') }}" 
+                     alt="Logo SIAFI" 
+                     class="absolute top-0 left-0 w-20 h-20 mx-auto object-contain bg-[#FDFDFC] dark:bg-[#0a0a0a] rounded-2xl" 
+                     onerror="this.style.display='none'">
             </div>
             
             <h1 class="text-3xl font-bold tracking-tight text-[#1b1b18] dark:text-[#EDEDEC] mb-1">
@@ -86,74 +99,60 @@
         
     </div>
 
- <script>
-    // 1. Registrasi Service Worker yang Lebih Stabil
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js')
-                .then(reg => { 
-                    console.log("Service Worker aktif:", reg.scope); 
-                })
-                .catch(err => { 
-                    console.error("Service Worker gagal:", err); 
-                });
-        });
-    }
+    <script>
+        // 1. Registrasi Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => { 
+                        console.log("Service Worker aktif:", reg.scope); 
+                    })
+                    .catch(err => { 
+                        console.error("Service Worker gagal:", err); 
+                    });
+            });
+        }
 
-    // 2. Logika Penangkapan Prompt Install
-    let deferredPrompt;
-    const installBtn = document.getElementById('installBtn');
+        // 2. Logika Prompt Install PWA
+        let deferredPrompt;
+        const installBtn = document.getElementById('installBtn');
+        const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
-    // Cek apakah aplikasi sudah berjalan dalam mode PWA/Terinstal
-    const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        if (!isPWA) {
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                if (installBtn) {
+                    installBtn.style.setProperty('display', 'flex', 'important');
+                }
+            });
+        }
 
-    if (!isPWA) {
-        window.addEventListener('beforeinstallprompt', (e) => {
-            // Mencegah browser memunculkan mini-infobar bawaan otomatis
-            e.preventDefault();
-            
-            // Simpan event agar bisa dipicu nanti via tombol kustom
-            deferredPrompt = e;
-            
-            // Paksa tombol muncul di mobile dengan menghapus style inline hidden
-            if (installBtn) {
-                installBtn.style.setProperty('display', 'flex', 'important');
-            }
-        });
-    }
+        // 3. Eksekusi Klik Tombol Install
+        if (installBtn) {
+            installBtn.addEventListener('click', async () => {
+                if (!deferredPrompt) {
+                    alert('Untuk memasang aplikasi, buka menu browser lalu pilih "Tambahkan ke Layar Utama".');
+                    return;
+                }
+                
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                
+                if (outcome === 'accepted') {
+                    installBtn.style.display = 'none';
+                }
+                
+                deferredPrompt = null;
+            });
+        }
 
-    // 3. Eksekusi Saat Tombol Diklik
-    if (installBtn) {
-        installBtn.addEventListener('click', async () => {
-            if (!deferredPrompt) {
-                // Skenario cadangan jika prompt belum siap/tidak didukung (seperti iOS)
-                alert('Untuk memasang aplikasi, klik menu titik tiga (atau tombol Share di iPhone) lalu pilih "Tambahkan ke Layar Utama".');
-                return;
-            }
-            
-            // Munculkan prompt instalasi bawaan OS
-            deferredPrompt.prompt();
-            
-            // Tunggu respon dari pengguna (terima/tolak)
-            const { outcome } = await deferredPrompt.userChoice;
-            console.log(`User response to install prompt: ${outcome}`);
-            
-            if (outcome === 'accepted') {
-                installBtn.style.display = 'none';
-            }
-            
-            // Reset prompt karena hanya bisa digunakan sekali
+        // 4. Sembunyikan jika sukses terinstal
+        window.addEventListener('appinstalled', () => {
+            if (installBtn) installBtn.style.display = 'none';
             deferredPrompt = null;
         });
-    }
-
-    // 4. Sembunyikan tombol otomatis jika PWA sukses terinstal saat itu juga
-    window.addEventListener('appinstalled', () => {
-        console.log('SIAFI berhasil diinstal.');
-        if (installBtn) installBtn.style.display = 'none';
-        deferredPrompt = null;
-    });
-</script>
+    </script>
 
 </body>
 </html>

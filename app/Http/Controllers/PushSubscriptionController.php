@@ -12,54 +12,52 @@ class PushSubscriptionController extends Controller
 {
     /**
      * Simpan subscription Web Push dari client ke tabel device_gurus.
-     * Body: { subscription: {...}, device_id: 'uuid', nama_perangkat: '...' }
      */
     public function save(Request $request)
     {
         $user = Auth::user();
-        if (!$user || !$user->guru) {
-            return response()->json(['message' => 'Unauthorized or not a guru'], 403);
+
+        // Cek apakah user login dan memiliki relasi guru
+        if (!$user || !method_exists($user, 'guru') || !$user->guru) {
+            return response()->json([
+                'message' => 'Unauthorized: Akun ini tidak terikat dengan data Guru.'
+            ], 403);
         }
 
         $validator = Validator::make($request->all(), [
-            'subscription' => ['required', 'array'],
-            'device_id' => ['nullable', 'string'],
+            'subscription'   => ['required', 'array'],
+            'device_id'      => ['nullable', 'string'],
             'nama_perangkat' => ['nullable', 'string'],
-            'fcm_token' => ['nullable', 'string'],
+            'fcm_token'      => ['nullable', 'string'],
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['message' => 'Invalid data', 'errors' => $validator->errors()], 422);
+            return response()->json([
+                'message' => 'Invalid data', 
+                'errors'  => $validator->errors()
+            ], 422);
         }
 
         $data = $validator->validated();
+        $deviceId = $data['device_id'] ?? (string) Str::uuid();
 
-        $deviceId = $data['device_id'] ?? null;
-
-        // Cari device berdasarkan device_id atau buat baru
-        $deviceQuery = DeviceGuru::where('guru_id', $user->guru->id);
-        if ($deviceId) {
-            $deviceQuery = $deviceQuery->where('device_id', $deviceId);
-        }
-
-        $device = $deviceQuery->first();
-
-        if (!$device) {
-            $device = DeviceGuru::create([
-                'guru_id' => $user->guru->id,
-                'device_id' => $deviceId ?? (string) Str::uuid(),
-                'nama_perangkat' => $data['nama_perangkat'] ?? null,
-                'fcm_token' => $data['fcm_token'] ?? null,
+        // Simpan atau update data perangkat
+        $device = DeviceGuru::updateOrCreate(
+            [
+                'guru_id'   => $user->guru->id,
+                'device_id' => $deviceId,
+            ],
+            [
+                'nama_perangkat'    => $data['nama_perangkat'] ?? null,
+                'fcm_token'         => $data['fcm_token'] ?? null,
                 'push_subscription' => $data['subscription'],
-            ]);
-        } else {
-            $device->update([
-                'nama_perangkat' => $data['nama_perangkat'] ?? $device->nama_perangkat,
-                'fcm_token' => $data['fcm_token'] ?? $device->fcm_token,
-                'push_subscription' => $data['subscription'],
-            ]);
-        }
+            ]
+        );
 
-        return response()->json(['message' => 'Subscription saved']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Subscription berhasil disimpan',
+            'data'    => $device
+        ], 200);
     }
 }

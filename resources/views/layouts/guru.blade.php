@@ -250,16 +250,100 @@
         </nav>
     </div>
 
-    <!-- SCRIPT INTERAKSI SIDEBAR -->
-    <script>
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const backdrop = document.getElementById('sidebar-backdrop');
+    <!-- SCRIPT INTERAKSI SIDEBAR & WEB PUSH REGISTRATION -->
+  <script>
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
 
-            sidebar.classList.toggle('-translate-x-full');
-            backdrop.classList.toggle('hidden');
+        sidebar.classList.toggle('-translate-x-full');
+        backdrop.classList.toggle('hidden');
+    }
+
+    // SCRIPT REGISTRASI WEB PUSH SUBSCRIPTION
+    document.addEventListener("DOMContentLoaded", async () => {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+            return;
         }
-    </script>
+
+        try {
+            // 1. Register Service Worker
+            const registration = await navigator.serviceWorker.register('/sw.js');
+
+            // 2. Minta Izin Notifikasi
+            const permission = await Notification.requestPermission();
+            if (permission !== 'granted') {
+                return;
+            }
+
+            // 3. Ambil VAPID Public Key dari Meta Tag
+            const vapidMeta = document.querySelector('meta[name="vapid-public-key"]');
+            const vapidPublicKey = vapidMeta ? vapidMeta.getAttribute('content') : null;
+
+            if (!vapidPublicKey) {
+                console.error('Push Subscription Gagal: VAPID_PUBLIC_KEY belum di-set di meta tag/env');
+                return;
+            }
+
+            // 4. Lakukan Subscribe
+            let subscription = await registration.pushManager.getSubscription();
+            if (!subscription) {
+                subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+                });
+            }
+
+            // 5. Format Payload Subscription
+            const subData = subscription.toJSON();
+            subData.contentEncoding = (PushManager.supportedContentEncodings || ['aes128gcm'])[0];
+
+            // Helper untuk UUID Perangkat
+            let deviceId = localStorage.getItem('guru_device_uuid');
+            if (!deviceId) {
+                deviceId = 'dev-' + Math.random().toString(36).substring(2, 11) + '-' + Date.now();
+                localStorage.setItem('guru_device_uuid', deviceId);
+            }
+
+            // 6. Kirim Data Subscription ke Server
+            const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+            const targetUrl = "{{ route('guru.push-subscription.save') }}";
+
+            const response = await fetch(targetUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfMeta ? csrfMeta.getAttribute('content') : ''
+                },
+                redirect: 'follow', // Pastikan penanganan redirect yang aman
+                body: JSON.stringify({
+                    subscription: subData,
+                    device_id: deviceId,
+                    nama_perangkat: navigator.userAgent
+                })
+            });
+
+            const resData = await response.json();
+            console.log('Push Subscription Response:', resData);
+
+        } catch (error) {
+            console.error('Error saat mendaftarkan Web Push:', error);
+        }
+    });
+
+    // Helper fungsi konversi Base64 VAPID Key
+    function urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+    }
+</script>
 </body>
 
 </html>
