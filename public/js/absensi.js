@@ -36,6 +36,10 @@
         toastIcon: document.getElementById('toast-icon'),
         toastMessage: document.getElementById('toast-message'),
 
+        // Ringkasan jadwal (statistik hari ini)
+        jadwalStatTotal: document.getElementById('jadwal-stat-total'),
+        jadwalStatBadge: document.getElementById('jadwal-stat-badge'),
+
         // Modal izin
         modalIzin: document.getElementById('modal-izin'),
         btnBukaIzin: document.getElementById('btn-buka-izin'),
@@ -112,7 +116,7 @@
         const styles = {
             success: { cls: 'bg-emerald-50 border-emerald-200 text-emerald-700', icon: 'fa-circle-check text-emerald-500' },
             error: { cls: 'bg-red-50 border-red-200 text-red-700', icon: 'fa-circle-exclamation text-red-500' },
-            info: { cls: 'bg-indigo-50 border-indigo-200 text-indigo-700', icon: 'fa-circle-info text-indigo-500' },
+            info: { cls: 'bg-emerald-50 border-emerald-200 text-emerald-700', icon: 'fa-circle-info text-emerald-500' },
         };
         const s = styles[type] || styles.info;
         els.toastBody.className = 'flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border text-sm font-medium ' + s.cls;
@@ -167,7 +171,7 @@
 
     function renderWajahBelumTerdaftar() {
         aksiAktif = null;
-        els.statusBanner.className = 'rounded-2xl p-4 border flex items-start gap-3 bg-amber-50 border-amber-200 text-amber-700';
+        els.statusBanner.className = 'rounded-2xl p-4 border flex items-start gap-3 bg-amber-50 border-amber-200 text-amber-800';
         els.statusBanner.innerHTML = `
             <i class="fa-solid fa-face-viewfinder text-lg mt-0.5"></i>
             <div>
@@ -210,36 +214,97 @@
         return match ? `${match[1]}:${match[2]}` : value;
     }
 
+    // Menghitung total menit mengajar dari sebuah entri jadwal (jam_masuk - jam_pulang)
+    function hitungMenitJadwal(jamMasuk, jamPulang) {
+        const parse = (v) => {
+            if (!v) return null;
+            const m = String(v).match(/(\d{2}):(\d{2})/);
+            if (!m) return null;
+            return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+        };
+        const a = parse(jamMasuk);
+        const b = parse(jamPulang);
+        if (a === null || b === null || b < a) return 0;
+        return b - a;
+    }
+
+    function formatDurasi(menit) {
+        if (!menit || menit <= 0) return '—';
+        const h = Math.floor(menit / 60);
+        const m = menit % 60;
+        if (h && m) return `${h} jam ${m} mnt`;
+        if (h) return `${h} jam`;
+        return `${m} mnt`;
+    }
+
     function renderStatus(data) {
         els.namaGuru.textContent = data.guru?.nama || 'Guru';
         els.infoJamMasuk.textContent = formatJam(data.sekolah?.jam_masuk);
         els.infoJamKeluar.textContent = formatJam(data.sekolah?.jam_keluar);
 
-        if (data.jadwal && Array.isArray(data.jadwal) && data.jadwal.length > 0) {
-            let html = '<ul class="space-y-1.5">';
-            data.jadwal.forEach((j) => {
-                const mapel = escapeHtml(j.nama_mapel || '-');
-                const kelas = escapeHtml(j.nama_kelas || '-');
-                const ruangan = j.ruangan ? ` (${escapeHtml(j.ruangan)})` : '';
-                const jamMasuk = formatJam(j.jam_masuk);
-                const jamPulang = formatJam(j.jam_pulang);
-                const jamRange = jamMasuk !== '—' && jamPulang !== '—' ? `${jamMasuk} - ${jamPulang}` : jamMasuk;
-                html += `
-                    <li class="flex items-center justify-between text-slate-600 text-xs py-1.5 border-b border-slate-100 last:border-0">
-                        <span class="font-semibold truncate pr-2"><i class="fa-solid fa-book-open text-slate-400 mr-1.5"></i>${mapel} (${kelas}${ruangan})</span>
-                        <span class="shrink-0 text-[10px] bg-slate-100 px-2 py-0.5 rounded text-slate-500 font-medium">${jamRange}</span>
-                    </li>`;
-            });
-            html += '</ul>';
-            els.infoJadwal.innerHTML = html;
-        } else {
-            els.infoJadwal.innerHTML = '<p class="text-xs text-slate-400 italic py-1">Tidak ada jadwal mengajar hari ini.</p>';
-        }
+        renderStatistikJadwal(data.jadwal);
 
         renderStatusBannerDanAksi(data);
 
         els.ringkasanLoading.classList.add('hidden');
         els.ringkasanContent.classList.remove('hidden');
+    }
+
+  // ================= Statistik jadwal hari ini =================
+    function renderStatistikJadwal(jadwal) {
+        const list = Array.isArray(jadwal) ? jadwal : [];
+        const totalSesi = list.length;
+        const totalMenit = list.reduce(
+            (sum, j) => sum + hitungMenitJadwal(j.jam_masuk, j.jam_pulang), 0
+        );
+        const totalKelas = new Set(list.map((j) => j.nama_kelas).filter(Boolean)).size;
+
+        if (els.jadwalStatBadge) {
+            els.jadwalStatBadge.textContent = totalSesi > 0 ? `${totalSesi} sesi` : 'Libur mengajar';
+            els.jadwalStatBadge.className = totalSesi > 0
+                ? 'text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200'
+                : 'text-[11px] font-bold px-2.5 py-1 rounded-full bg-stone-100 text-stone-500 border border-stone-200';
+        }
+
+        if (els.jadwalStatTotal) {
+            if (totalSesi > 0) {
+                els.jadwalStatTotal.innerHTML = `
+                    <div class="grid grid-cols-3 divide-x divide-emerald-100 mb-3 rounded-xl bg-emerald-50/60 border border-emerald-100 overflow-hidden">
+                        <div class="px-2 py-2 text-center">
+                            <p class="text-base font-extrabold text-emerald-800 leading-none">${totalSesi}</p>
+                            <p class="text-[9px] font-semibold text-emerald-600 uppercase tracking-wide mt-1">Sesi</p>
+                        </div>
+                        <div class="px-2 py-2 text-center">
+                            <p class="text-base font-extrabold text-emerald-800 leading-none">${totalKelas}</p>
+                            <p class="text-[9px] font-semibold text-emerald-600 uppercase tracking-wide mt-1">Kelas</p>
+                        </div>
+                        <div class="px-2 py-2 text-center">
+                            <p class="text-base font-extrabold text-emerald-800 leading-none">${formatDurasi(totalMenit)}</p>
+                            <p class="text-[9px] font-semibold text-emerald-600 uppercase tracking-wide mt-1">Durasi</p>
+                        </div>
+                    </div>`;
+            } else {
+                els.jadwalStatTotal.innerHTML = '';
+            }
+        }
+
+        if (list.length > 0) {
+            let html = '<ul class="space-y-1.5">';
+            list.forEach((j) => {
+                const mapel = escapeHtml(j.nama_mapel || '-');
+                const kelas = escapeHtml(j.nama_kelas || '-');
+                const ruangan = j.ruangan ? ` (${escapeHtml(j.ruangan)})` : '';
+                
+                html += `
+                    <li class="flex items-center text-stone-600 text-xs py-1.5 border-b border-stone-100 last:border-0">
+                        <span class="font-semibold truncate"><i class="fa-solid fa-book-open text-emerald-500 mr-1.5"></i>${mapel} (${kelas}${ruangan})</span>
+                    </li>`;
+            });
+            html += '</ul>';
+            els.infoJadwal.innerHTML = html;
+        } else {
+            els.infoJadwal.innerHTML = '<p class="text-xs text-stone-400 italic py-1">Tidak ada jadwal mengajar hari ini.</p>';
+        }
     }
 
     function escapeHtml(str) {
@@ -252,11 +317,11 @@
         // Tidak ada jadwal mengajar hari ini
         if (!data.ada_jadwal_mengajar) {
             aksiAktif = null;
-            els.statusBanner.className = 'rounded-2xl p-4 border flex items-start gap-3 bg-slate-50 border-slate-200 text-slate-500';
+            els.statusBanner.className = 'rounded-2xl p-4 border flex items-start gap-3 bg-stone-50 border-stone-200 text-stone-500';
             els.statusBanner.innerHTML = `
                 <i class="fa-solid fa-calendar-xmark text-lg mt-0.5"></i>
                 <div>
-                    <p class="font-semibold text-slate-600">Tidak ada jadwal mengajar</p>
+                    <p class="font-semibold text-stone-600">Tidak ada jadwal mengajar</p>
                     <p class="text-sm mt-0.5">Anda tidak memiliki jadwal mengajar pada <strong>${escapeHtml(data.hari || 'hari ini')}</strong>, sehingga tidak perlu absen.</p>
                 </div>`;
             els.aksiArea.innerHTML = '';
@@ -272,7 +337,7 @@
                 ? { cls: 'bg-emerald-50 border-emerald-200 text-emerald-700', icon: 'fa-circle-check', text: 'Disetujui' }
                 : persetujuan === 'ditolak'
                     ? { cls: 'bg-red-50 border-red-200 text-red-700', icon: 'fa-circle-xmark', text: 'Ditolak' }
-                    : { cls: 'bg-amber-50 border-amber-200 text-amber-700', icon: 'fa-hourglass-half', text: 'Menunggu persetujuan' };
+                    : { cls: 'bg-amber-50 border-amber-200 text-amber-800', icon: 'fa-hourglass-half', text: 'Menunggu persetujuan' };
 
             els.statusBanner.className = `rounded-2xl p-4 border flex items-start gap-3 ${badge.cls}`;
             els.statusBanner.innerHTML = `
@@ -282,7 +347,7 @@
                     <p class="text-sm mt-0.5">${persetujuan === 'ditolak' ? 'Pengajuan Anda ditolak. Anda dapat mengajukan kembali.' : 'Pengajuan ketidakhadiran untuk hari ini sudah tercatat.'}</p>
                 </div>`;
             els.aksiArea.innerHTML = persetujuan === 'ditolak' ? '' : `
-                <div class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 text-slate-500 border border-slate-200 text-sm font-semibold w-full justify-center">
+                <div class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-stone-100 text-stone-500 border border-stone-200 text-sm font-semibold w-full justify-center">
                     <i class="fa-solid fa-lock"></i> Absen tidak diperlukan hari ini
                 </div>`;
             return;
@@ -314,7 +379,7 @@
             const bukaMasuk = data.time_windows?.buka_absen_masuk;
             if (!isWindowOpen(bukaMasuk)) {
                 aksiAktif = null;
-                els.statusBanner.className = 'rounded-2xl p-4 border flex items-start gap-3 bg-amber-50 border-amber-200 text-amber-700';
+                els.statusBanner.className = 'rounded-2xl p-4 border flex items-start gap-3 bg-amber-50 border-amber-200 text-amber-800';
                 els.statusBanner.innerHTML = `
                     <i class="fa-solid fa-hourglass-half text-lg mt-0.5"></i>
                     <div>
@@ -322,14 +387,14 @@
                         <p class="text-sm mt-0.5">Absen masuk akan dibuka pukul <strong>${formatJam(bukaMasuk)}</strong>.</p>
                     </div>`;
                 els.aksiArea.innerHTML = `
-                    <button disabled class="w-full py-3.5 px-4 rounded-xl bg-slate-200 text-slate-400 font-semibold text-center flex items-center justify-center gap-2 cursor-not-allowed">
+                    <button disabled class="w-full py-3.5 px-4 rounded-xl bg-stone-200 text-stone-400 font-semibold text-center flex items-center justify-center gap-2 cursor-not-allowed">
                         <i class="fa-solid fa-lock"></i> Menunggu jam absen masuk
                     </button>`;
                 return;
             }
 
             aksiAktif = 'masuk';
-            els.statusBanner.className = 'rounded-2xl p-4 border flex items-start gap-3 bg-indigo-50 border-indigo-200 text-indigo-700';
+            els.statusBanner.className = 'rounded-2xl p-4 border flex items-start gap-3 bg-emerald-50 border-emerald-200 text-emerald-800';
             els.statusBanner.innerHTML = `
                 <i class="fa-solid fa-right-to-bracket text-lg mt-0.5"></i>
                 <div>
@@ -337,7 +402,7 @@
                     <p class="text-sm mt-0.5">Tekan tombol di bawah untuk membuka kamera dan merekam absen masuk.</p>
                 </div>`;
             els.aksiArea.innerHTML = `
-                <button id="btn-buka-modal" class="w-full py-3.5 px-4 rounded-xl bg-indigo-600 text-white font-semibold shadow-sm hover:bg-indigo-700 active:bg-indigo-800 transition-all flex items-center justify-center gap-2">
+                <button id="btn-buka-modal" class="w-full py-3.5 px-4 rounded-xl bg-emerald-700 text-white font-semibold shadow-sm hover:bg-emerald-800 active:bg-emerald-900 transition-all flex items-center justify-center gap-2">
                     <i class="fa-solid fa-camera"></i> Absen masuk
                 </button>`;
             bindBukaModal('masuk');
@@ -354,7 +419,7 @@
 
         if (!isWindowOpen(bukaPulang)) {
             aksiAktif = null;
-            els.statusBanner.className = 'rounded-2xl p-4 border flex items-start gap-3 bg-slate-50 border-slate-200 text-slate-600';
+            els.statusBanner.className = 'rounded-2xl p-4 border flex items-start gap-3 bg-stone-50 border-stone-200 text-stone-600';
             els.statusBanner.innerHTML = `
                 <i class="fa-solid fa-circle-check text-lg mt-0.5 ${statusColor}"></i>
                 <div>
@@ -362,14 +427,14 @@
                     <p class="text-sm mt-0.5">Pukul <strong>${jamMasuk}</strong>. Absen pulang dibuka pukul <strong>${formatJam(bukaPulang)}</strong>.</p>
                 </div>`;
             els.aksiArea.innerHTML = `
-                <button disabled class="w-full py-3.5 px-4 rounded-xl bg-slate-200 text-slate-400 font-semibold text-center flex items-center justify-center gap-2 cursor-not-allowed">
+                <button disabled class="w-full py-3.5 px-4 rounded-xl bg-stone-200 text-stone-400 font-semibold text-center flex items-center justify-center gap-2 cursor-not-allowed">
                     <i class="fa-solid fa-lock"></i> Menunggu jam absen pulang
                 </button>`;
             return;
         }
 
         aksiAktif = 'pulang';
-        els.statusBanner.className = 'rounded-2xl p-4 border flex items-start gap-3 bg-indigo-50 border-indigo-200 text-indigo-700';
+        els.statusBanner.className = 'rounded-2xl p-4 border flex items-start gap-3 bg-emerald-50 border-emerald-200 text-emerald-800';
         els.statusBanner.innerHTML = `
             <i class="fa-solid fa-right-from-bracket text-lg mt-0.5"></i>
             <div>
@@ -377,7 +442,7 @@
                 <p class="text-sm mt-0.5">Absen masuk tercatat pukul <strong>${jamMasuk}</strong> (${statusMasuk}). Tekan tombol di bawah untuk absen pulang.</p>
             </div>`;
         els.aksiArea.innerHTML = `
-            <button id="btn-buka-modal" class="w-full py-3.5 px-4 rounded-xl bg-indigo-600 text-white font-semibold shadow-sm hover:bg-indigo-700 active:bg-indigo-800 transition-all flex items-center justify-center gap-2">
+            <button id="btn-buka-modal" class="w-full py-3.5 px-4 rounded-xl bg-emerald-700 text-white font-semibold shadow-sm hover:bg-emerald-800 active:bg-emerald-900 transition-all flex items-center justify-center gap-2">
                 <i class="fa-solid fa-camera"></i> Absen pulang
             </button>`;
         bindBukaModal('pulang');
@@ -400,9 +465,9 @@
     const SubmitButtonController = {
         el: null,
         states: {
-            idle: { label: 'Kirim absen', icon: 'fa-paper-plane', disabled: false, cls: 'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white' },
-            detecting: { label: 'Mendeteksi wajah…', icon: 'fa-circle-notch fa-spin', disabled: true, cls: 'bg-indigo-400 text-white cursor-wait' },
-            submitting: { label: 'Mengirim ke server…', icon: 'fa-circle-notch fa-spin', disabled: true, cls: 'bg-indigo-400 text-white cursor-wait' },
+            idle: { label: 'Kirim absen', icon: 'fa-paper-plane', disabled: false, cls: 'bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white' },
+            detecting: { label: 'Mendeteksi wajah…', icon: 'fa-circle-notch fa-spin', disabled: true, cls: 'bg-emerald-400 text-white cursor-wait' },
+            submitting: { label: 'Mengirim ke server…', icon: 'fa-circle-notch fa-spin', disabled: true, cls: 'bg-emerald-400 text-white cursor-wait' },
             error: { label: 'Coba kirim lagi', icon: 'fa-rotate-right', disabled: false, cls: 'bg-red-500 hover:bg-red-600 active:bg-red-700 text-white' },
             success: { label: 'Berhasil dikirim', icon: 'fa-check', disabled: true, cls: 'bg-emerald-500 text-white' },
         },
@@ -421,8 +486,8 @@
     function openModal(aksi) {
         aksiAktif = aksi;
         els.modalTitle.innerHTML = aksi === 'masuk'
-            ? '<i class="fa-solid fa-camera text-slate-500"></i> Absen masuk'
-            : '<i class="fa-solid fa-camera text-slate-500"></i> Absen pulang';
+            ? '<i class="fa-solid fa-camera text-emerald-600"></i> Absen masuk'
+            : '<i class="fa-solid fa-camera text-emerald-600"></i> Absen pulang';
 
         resetModalView();
         els.modal.classList.remove('hidden');
@@ -477,8 +542,8 @@
 
     function updateCameraStatus(text, spinning) {
         els.cameraStatus.innerHTML = spinning
-            ? `<i class="fa-solid fa-circle-notch animate-spin text-indigo-400"></i> ${text}`
-            : `<i class="fa-solid fa-face-smile text-indigo-400"></i> ${text}`;
+            ? `<i class="fa-solid fa-circle-notch animate-spin text-emerald-400"></i> ${text}`
+            : `<i class="fa-solid fa-face-smile text-emerald-400"></i> ${text}`;
     }
 
     function startGeolocation() {
@@ -501,10 +566,10 @@
     }
 
     function setGpsState(state, text) {
-        els.gpsPill.classList.remove('bg-amber-50', 'border-amber-200', 'text-amber-700', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-700', 'bg-red-50', 'border-red-200', 'text-red-700');
+        els.gpsPill.classList.remove('bg-amber-50', 'border-amber-200', 'text-amber-800', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-700', 'bg-red-50', 'border-red-200', 'text-red-700');
         if (state === 'ok') els.gpsPill.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-700');
         else if (state === 'bad') els.gpsPill.classList.add('bg-red-50', 'border-red-200', 'text-red-700');
-        else els.gpsPill.classList.add('bg-amber-50', 'border-amber-200', 'text-amber-700');
+        else els.gpsPill.classList.add('bg-amber-50', 'border-amber-200', 'text-amber-800');
         els.gpsText.textContent = text;
     }
 
@@ -698,7 +763,7 @@
 
                     if (els.btnKirimIzin) {
                         els.btnKirimIzin.innerHTML = '<i class="fa-solid fa-check"></i> Berhasil dikirim';
-                        els.btnKirimIzin.className = 'w-full py-3.5 px-4 rounded-xl font-bold shadow-sm transition-all flex items-center justify-center gap-2 bg-emerald-500 text-white text-sm';
+                        els.btnKirimIzin.className = 'w-full py-3.5 px-4 rounded-xl font-bold shadow-sm transition-all flex items-center justify-center gap-2 bg-emerald-600 text-white text-sm';
                     }
 
                     queueFlash('success', result.message || 'Pengajuan berhasil dikirim.');

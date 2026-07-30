@@ -7,14 +7,7 @@ use Illuminate\Support\Facades\Log;
 
 class FonnteService
 {
-    /**
-     * Normalisasi nomor HP Indonesia ke format 62xxxxxxxxxx.
-     * Membuang karakter non-digit, spasi, tanda +, dsb.
-     * Contoh:
-     *   081234567890  -> 6281234567890
-     *   +6281234567890 -> 6281234567890
-     *   6281234567890 -> 6281234567890
-     */
+    
     public static function normalisasiNomor(?string $nomor): ?string
     {
         if (empty($nomor)) {
@@ -43,12 +36,10 @@ class FonnteService
 
     /**
      * Kirim pesan WhatsApp menggunakan Fonnte API.
-     * Nomor otomatis dinormalisasi ke format 62xxxxxxxxxx sebelum dikirim,
-     * jadi pemanggil TIDAK perlu normalisasi manual lagi.
      */
     public static function sendMessage($target, $message)
     {
-        $token = env('FONNTE_TOKEN'); // Masukkan token di file .env
+        $token = env('FONNTE_TOKEN'); 
 
         if (!$token) {
             Log::error('Fonnte Token tidak ditemukan di .env');
@@ -72,14 +63,13 @@ class FonnteService
             ])->post('https://api.fonnte.com/send', [
                 'target'  => $target,
                 'message' => $message,
-                // target sudah dinormalisasi ke format 62xxxxxxxxxx,
-                // jadi countryCode tidak diperlukan (lebih aman dihapus)
+               
             ]);
 
 
             $result = $response->json();
 
-            // Log status HTTP + body mentah agar mudah didiagnosis kalau gagal
+         
             if (!$response->successful()) {
                 Log::error('Fonnte HTTP Error: status=' . $response->status() . ' body=' . $response->body());
                 return false;

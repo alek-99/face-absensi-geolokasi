@@ -14,12 +14,15 @@
     <div class="space-y-4">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 px-1">
             <div>
-                <h3 class="text-sm font-bold text-[#1b1b18] dark:text-[#EDEDEC]">Kartu Identitas Digital</h3>
-                <p class="text-xs text-[#706f6c] dark:text-[#A1A09A]">Klik kartu untuk melihat sisi belakang.</p>
+                <h3 class="text-sm font-bold text-emerald-950 dark:text-emerald-100 flex items-center gap-2">
+                    <i class="fa-solid fa-address-card text-emerald-600 dark:text-emerald-400"></i>
+                    Kartu Identitas Digital
+                </h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Klik kartu untuk memutar dan melihat sisi belakang.</p>
             </div>
             
             {{-- Tombol Cetak / Download --}}
-            <button id="btn-download-card" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-sm cursor-pointer w-full sm:w-auto justify-center">
+            <button id="btn-download-card" class="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-md hover:shadow-lg cursor-pointer w-full sm:w-auto justify-center">
                 <i class="fa-solid fa-download"></i>
                 Unduh ID Card (PNG)
             </button>
@@ -27,48 +30,51 @@
 
         {{-- Perspektif 3D Flip Card Container --}}
         <div class="w-full flex justify-center [perspective:1000px]">
-            <div id="id-card-flip" class="relative w-full max-w-[430px] aspect-[1.586/1] transition-transform duration-500 [transform-style:preserve-3d] cursor-pointer shadow-md rounded-2xl">
+            <div id="id-card-flip" class="relative w-full max-w-[430px] aspect-[1.586/1] transition-transform duration-500 [transform-style:preserve-3d] cursor-pointer shadow-xl rounded-2xl">
                 
                 {{-- SISI DEPAN KARTU (FRONT) --}}
-                <div id="id-card-front" class="absolute inset-0 w-full h-full [backface-visibility:hidden] rounded-2xl p-5 flex flex-col justify-between bg-gradient-to-br from-indigo-600 to-teal-600 dark:from-[#1e1b4b] dark:to-[#0f172a] text-white overflow-hidden border border-white/10">
+                <div id="id-card-front" class="absolute inset-0 w-full h-full [backface-visibility:hidden] rounded-2xl p-5 flex flex-col justify-between bg-gradient-to-br from-emerald-800 via-emerald-900 to-teal-950 text-white overflow-hidden border border-emerald-500/30 shadow-inner">
+                    
                     {{-- Ornamen Latar Belakang --}}
-                    <div class="absolute -right-6 -bottom-6 w-32 h-32 opacity-10 rotate-12 pointer-events-none">
-                        <img src="{{ asset('storage/images/logo.png') }}" alt="SIAFI Ornament" class="w-full h-full object-contain grayscale brightness-200">
+                    <div class="absolute -right-8 -bottom-8 w-40 h-40 opacity-10 rotate-12 pointer-events-none">
+                        <img src="{{ asset('storage/images/logo.png') }}" alt="SIAFI Ornament" class="w-full h-full object-contain filter brightness-200">
                     </div>
-                    <div class="absolute -left-12 -top-12 w-36 h-36 bg-white/5 rounded-full blur-2xl pointer-events-none"></div>
+                    <div class="absolute -left-10 -top-10 w-36 h-36 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none"></div>
+                    <div class="absolute right-1/4 top-0 w-24 h-full bg-gradient-to-r from-transparent via-emerald-400/5 to-transparent -skew-x-12 pointer-events-none"></div>
 
                     {{-- Header Kartu --}}
-                    <div class="flex items-center justify-between border-b border-white/20 pb-3 z-10">
-                        <div class="flex items-center gap-2">
-                            <div class="w-7 h-7 bg-white/90 p-1 rounded-lg">
+                    <div class="flex items-center justify-between border-b border-emerald-500/30 pb-2.5 z-10">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 bg-white p-1 rounded-lg shadow-sm flex items-center justify-center">
                                 <img src="{{ asset('storage/images/logo.png') }}" alt="Logo" class="w-full h-full object-contain">
                             </div>
                             <div>
-                                <h4 class="text-[11px] font-black tracking-wider uppercase leading-none">SIAFI DIGITAL</h4>
-                                <span class="text-[8px] text-indigo-200 dark:text-zinc-400 font-medium tracking-tight">Sistem Informasi Akademik & Presensi</span>
+                                <h4 class="text-[11px] font-extrabold tracking-wider uppercase leading-none text-emerald-100">SIAFI DIGITAL</h4>
+                                <span class="text-[8px] text-emerald-300 font-medium tracking-tight">Kartu Identitas Pendidik</span>
                             </div>
                         </div>
-                        <span class="text-[9px] bg-white/10 border border-white/20 px-2 py-0.5 rounded-md font-bold tracking-widest uppercase">GURU</span>
+                        <span class="text-[9px] bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 px-2.5 py-0.5 rounded-full font-bold tracking-widest uppercase backdrop-blur-md">GURU</span>
                     </div>
 
                     {{-- Konten Utama Sisi Depan --}}
                     <div class="flex gap-4 items-center my-auto z-10">
-                        {{-- Foto --}}
-                        <div class="w-20 h-24 bg-white/95 p-1 rounded-xl shrink-0 shadow-md">
+                        {{-- Foto Profil --}}
+                        <div class="w-20 h-24 bg-white/10 p-1 rounded-xl shrink-0 border border-emerald-400/30 backdrop-blur-sm shadow-md">
                             <img src="{{ $guru->foto_profil ? asset('storage/' . $guru->foto_profil) : asset('images/default-avatar.png') }}" 
                                  alt="Foto {{ $guru->nama }}" 
                                  class="w-full h-full object-cover rounded-lg">
                         </div>
+                        
                         {{-- Biodata Singkat --}}
                         <div class="space-y-1 overflow-hidden">
-                            <span class="text-[9px] font-semibold text-teal-200 dark:text-indigo-300 tracking-wide block uppercase">NIP. {{ $guru->nip }}</span>
-                            <h3 class="text-base font-bold tracking-tight leading-tight truncate">{{ $guru->nama }}</h3>
+                            <span class="text-[9px] font-mono font-semibold text-emerald-300 tracking-wider block">NIP. {{ $guru->nip }}</span>
+                            <h3 class="text-base font-bold tracking-tight leading-snug text-white truncate">{{ $guru->nama }}</h3>
                             
-                            <div class="flex gap-1.5 items-center pt-1">
-                                <span class="text-[9px] bg-black/15 dark:bg-white/10 px-2 py-0.5 rounded-md text-zinc-100 font-medium">
-                                    {{ $guru->jenis_kelamin == 'Laki-laki' ? 'L' : 'P' }}
+                            <div class="flex items-center gap-1.5 pt-1">
+                                <span class="text-[9px] bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-md text-emerald-200 font-semibold">
+                                    {{ $guru->jenis_kelamin == 'Laki-laki' ? 'Laki-Laki' : 'Perempuan' }}
                                 </span>
-                                <span class="text-[9px] text-indigo-100 dark:text-zinc-400 truncate">
+                                <span class="text-[9px] text-emerald-200/80 truncate">
                                     {{ $guru->tempat_lahir }}, {{ \Carbon\Carbon::parse($guru->tanggal_lahir)->translatedFormat('d M Y') }}
                                 </span>
                             </div>
@@ -76,40 +82,48 @@
                     </div>
 
                     {{-- Footer Sisi Depan --}}
-                    <div class="flex justify-between items-end border-t border-white/15 pt-2 text-[8px] text-indigo-100/80 dark:text-zinc-400 z-10">
-                        <span class="font-medium tracking-wide"><i class="fa-solid fa-phone mr-1"></i>{{ $guru->no_hp }}</span>
-                        <span class="font-mono text-white/40 tracking-wider text-[7px]">SECURE DIGITAL CARD</span>
+                    <div class="flex justify-between items-end border-t border-emerald-500/30 pt-2 text-[8px] text-emerald-200/80 z-10">
+                        <span class="font-medium tracking-wide flex items-center gap-1">
+                            <i class="fa-solid fa-phone text-emerald-400"></i>{{ $guru->no_hp }}
+                        </span>
+                        <span class="font-mono text-emerald-400/60 tracking-wider text-[7px] uppercase">Official Professional Card</span>
                     </div>
                 </div>
 
                 {{-- SISI BELAKANG KARTU (BACK) --}}
-                <div id="id-card-back" class="absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-2xl p-5 flex flex-col justify-between bg-zinc-900 text-zinc-300 overflow-hidden border border-zinc-800">
-                    <div class="absolute right-4 top-4 w-16 h-16 bg-zinc-800/40 rounded-full blur-xl pointer-events-none"></div>
+                <div id="id-card-back" class="absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-2xl p-5 flex flex-col justify-between bg-gradient-to-br from-slate-900 via-emerald-950 to-slate-900 text-slate-300 overflow-hidden border border-emerald-800/50">
+                    <div class="absolute right-4 top-4 w-20 h-20 bg-emerald-500/10 rounded-full blur-xl pointer-events-none"></div>
 
                     {{-- Pita Magnetik Simulasi --}}
-                    <div class="absolute top-4 left-0 w-full h-7 bg-zinc-800 border-y border-zinc-700/50"></div>
+                    <div class="absolute top-4 left-0 w-full h-8 bg-slate-950 border-y border-emerald-900/50 flex items-center px-4">
+                        <div class="w-full h-2 bg-emerald-900/30 rounded-full"></div>
+                    </div>
 
                     {{-- Konten Alamat & Ketentuan --}}
-                    <div class="mt-9 space-y-2.5 text-[8.5px] leading-relaxed">
-                        <div class="bg-zinc-950/40 p-2 rounded-xl border border-zinc-800/60">
-                            <span class="font-bold text-zinc-400 block mb-0.5 uppercase tracking-wide text-[7.5px]"><i class="fa-solid fa-map-marker-alt text-rose-400 mr-1"></i>Alamat Rumah :</span>
-                            <p class="text-zinc-300 font-medium line-clamp-2">{{ $guru->alamat }}</p>
+                    <div class="mt-10 space-y-2.5 text-[8.5px] leading-relaxed">
+                        <div class="bg-slate-950/60 p-2.5 rounded-xl border border-emerald-800/40 backdrop-blur-sm">
+                            <span class="font-bold text-emerald-400 block mb-0.5 uppercase tracking-wide text-[7.5px] flex items-center gap-1">
+                                <i class="fa-solid fa-location-dot text-emerald-400"></i> Alamat Rumah :
+                            </span>
+                            <p class="text-slate-200 font-medium line-clamp-2 leading-tight">{{ $guru->alamat }}</p>
                         </div>
                         
-                        <div class="px-1 space-y-1 text-zinc-400">
-                            <p class="font-bold text-zinc-300 text-[8px]">Ketentuan Penggunaan:</p>
-                            <ul class="list-disc list-inside space-y-0.5 text-[7.5px]">
+                        <div class="px-1 space-y-1 text-slate-400">
+                            <p class="font-bold text-emerald-300 text-[8px]">Ketentuan Penggunaan:</p>
+                            <ul class="list-disc list-inside space-y-0.5 text-[7.5px] text-slate-300">
                                 <li>Kartu ini merupakan identitas resmi tenaga pendidik SIAFI.</li>
-                                <li>Wajib dibawa/diakses selama lingkungan sekolah berlangsung.</li>
-                                <li>Gunakan QR/Barcode internal untuk pemindaian presensi cadangan.</li>
+                                <li>Wajib dibawa/diakses selama kegiatan belajar mengajar berlangsung.</li>
+                                <li>Hanya dapat dipergunakan oleh pemilik sah kartu ini.</li>
                             </ul>
                         </div>
                     </div>
 
                     {{-- Footer Sisi Belakang --}}
-                    <div class="border-t border-zinc-800/80 pt-2 flex justify-between items-center text-[7.5px] text-zinc-500">
-                        <span>Dicetak secara otomatis oleh Sistem</span>
-                        <span class="font-bold tracking-widest text-zinc-400">SIAFI VERIFIED</span>
+                    <div class="border-t border-emerald-900/60 pt-2 flex justify-between items-center text-[7.5px] text-slate-400">
+                        <span>Sistem Informasi Akademik & Presensi</span>
+                        <span class="font-bold tracking-widest text-emerald-400 flex items-center gap-1">
+                            <i class="fa-solid fa-shield-halved text-emerald-400"></i> VERIFIED
+                        </span>
                     </div>
                 </div>
 
@@ -119,27 +133,37 @@
     @endif
 
     {{-- GRUP FORM INFORMASI DAN PASSWORD --}}
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
         {{-- Form Informasi Profil --}}
-        <div class="p-5 sm:p-6 bg-white dark:bg-[#161615] rounded-2xl border border-[#e3e3e0] dark:border-[#3E3E3A] shadow-xs">
+        <div class="p-5 sm:p-6 bg-white dark:bg-slate-900 rounded-2xl border border-emerald-100 dark:border-emerald-900/30 shadow-sm hover:shadow-md transition">
             <div class="max-w-xl">
-                <div class="mb-4">
-                    <h3 class="text-sm font-bold text-[#1b1b18] dark:text-[#EDEDEC]">Data Akun & Personal</h3>
-                    <p class="text-xs text-[#706f6c] dark:text-[#A1A09A]">Perbarui informasi profil utama dan email Anda.</p>
+                <div class="mb-4 flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 flex items-center justify-center font-bold text-sm">
+                        <i class="fa-solid fa-user-pen"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100">Data Akun & Personal</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Perbarui informasi profil utama dan email Anda.</p>
+                    </div>
                 </div>
-                <div class="border-t border-gray-100 dark:border-zinc-900 my-4"></div>
+                <div class="border-t border-emerald-50 dark:border-slate-800 my-4"></div>
                 @include('profile.partials.update-profile-information-form')
             </div>
         </div>
 
         {{-- Form Ubah Password --}}
-        <div class="p-5 sm:p-6 bg-white dark:bg-[#161615] rounded-2xl border border-[#e3e3e0] dark:border-[#3E3E3A] shadow-xs">
+        <div class="p-5 sm:p-6 bg-white dark:bg-slate-900 rounded-2xl border border-emerald-100 dark:border-emerald-900/30 shadow-sm hover:shadow-md transition">
             <div class="max-w-xl">
-                <div class="mb-4">
-                    <h3 class="text-sm font-bold text-[#1b1b18] dark:text-[#EDEDEC]">Keamanan Sandi</h3>
-                    <p class="text-xs text-[#706f6c] dark:text-[#A1A09A]">Pastikan akun Anda menggunakan kata sandi yang panjang dan acak.</p>
+                <div class="mb-4 flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 flex items-center justify-center font-bold text-sm">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100">Keamanan Sandi</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Pastikan akun Anda menggunakan kata sandi yang kuat.</p>
+                    </div>
                 </div>
-                <div class="border-t border-gray-100 dark:border-zinc-900 my-4"></div>
+                <div class="border-t border-emerald-50 dark:border-slate-800 my-4"></div>
                 @include('profile.partials.update-password-form')
             </div>
         </div>

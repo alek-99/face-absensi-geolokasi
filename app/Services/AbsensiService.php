@@ -35,18 +35,35 @@ class AbsensiService
         return KonfigurasiAbsen::first() ?? KonfigurasiAbsen::create([]);
     }
 
-    public function cekJadwalHariIni(Guru $guru, ?Carbon $tanggal = null)
-    {
-        $tanggal ??= now();
-        $hari = $this->namaHariIndonesia($tanggal);
-
-        return Jadwal::with(['mapel', 'kelas'])
-            ->where('guru_id', $guru->id)
-            ->where('hari', $hari)
-            ->where('is_active', true)
-            ->orderBy('jam_masuk', 'asc')
-            ->get();
+  public function cekJadwalHariIni(Guru $guru, ?Carbon $tanggal = null)
+{
+    // 1. Pastikan tanggal/waktu selalu dalam timezone Asia/Jakarta (WIB)
+    if ($tanggal) {
+        $tanggal = $tanggal->copy()->setTimezone('Asia/Jakarta');
+    } else {
+        $tanggal = Carbon::now('Asia/Jakarta');
     }
+
+    $hari = $this->namaHariIndonesia($tanggal);
+
+    return Jadwal::with(['mapel', 'kelas'])
+        ->where('guru_id', $guru->id)
+        ->where('hari', $hari)
+        ->where('is_active', true)
+        ->orderBy('jam_masuk', 'asc')
+        ->get()
+        ->map(function ($jadwal) {
+            // 2. Pastikan jam_masuk & jam_keluar dikembalikan sebagai string H:i asli dari DB
+            // Mencegah konversi timezone otomatis oleh Carbon/Cast Laravel
+            if (is_string($jadwal->jam_masuk)) {
+                $jadwal->jam_masuk = substr($jadwal->jam_masuk, 0, 5); // Ambil "02:30"
+            }
+            if (is_string($jadwal->jam_keluar)) {
+                $jadwal->jam_keluar = substr($jadwal->jam_keluar, 0, 5);
+            }
+            return $jadwal;
+        });
+}
 
     public function namaHariIndonesia(Carbon $date): string
     {

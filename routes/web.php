@@ -122,6 +122,7 @@ Route::middleware(['auth', 'role:guru'])->name('guru.')->prefix('guru')->group(f
     // Jadwal
     Route::get('jadwal', [GuruJadwalController::class, 'index'])->name('jadwal.index');
     Route::get('jadwal/cetak', [GuruJadwalController::class, 'cetak'])->name('jadwal.cetak');
+    Route::get('/jadwal/excel', [GuruJadwalController::class, 'exportExcel'])->name('jadwal.excel');
 
     // Muka / Face Descriptors
     Route::prefix('wajah')->name('wajah.')->group(function () {
@@ -157,6 +158,7 @@ Route::get('/absen-siswa', [AbsenSiswaController::class, 'halaman'])->name('abse
         Route::post('/absensi/ajukan-izin', 'ajukanIzin')->name('absensi.ajukan-izin');
         Route::get('/laporan/absensi', 'cetakPDF')->name('absensi.pdf');
     });
+    Route::get('/absensi/cetak-excel', [GuruAbsensiController::class, 'cetakExcel'])->name('absensi.cetak-excel');
 });
 
 // --------------------------------------------------------------------------

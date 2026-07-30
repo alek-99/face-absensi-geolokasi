@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Guru;
 
 use App\Exceptions\AbsensiException;
+use App\Exports\AbsensiGuruExport;
 use App\Http\Controllers\Controller;
 use App\Models\Absensi;
 use App\Models\NotifikasiAdmin;
@@ -18,6 +19,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AbsensiController extends Controller
 {
@@ -285,7 +287,52 @@ class AbsensiController extends Controller
         return view('guru.absensi.riwayat', compact('riwayat'));
     }
 
-    public function cetakPDF(Request $request)
+    // public function cetakPDF(Request $request)
+    // {
+    //     $guru = $this->guruAktif();
+    //     if (!$guru) abort(403, 'Akun ini tidak terhubung dengan data guru.');
+
+    //     $bulan = (int) $request->query('bulan', now()->month);
+    //     $tahun = (int) $request->query('tahun', now()->year);
+
+    //     $setting = ReportSetting::first();
+    //     $sekolah = Sekolah::first();
+
+    //     $daftarAbsensi = Absensi::where('guru_id', $guru->id)
+    //         ->whereMonth('tanggal', $bulan)
+    //         ->whereYear('tanggal', $tahun)
+    //         ->orderBy('tanggal', 'asc')
+    //         ->get();
+
+    //     $statistik = [
+    //         'hadir'      => $daftarAbsensi->where('status', 'hadir')->count(),
+    //         'terlambat'  => $daftarAbsensi->where('status', 'terlambat')->count(),
+    //         'izin'       => $daftarAbsensi->where('status', 'izin')->count(),
+    //         'sakit'      => $daftarAbsensi->where('status', 'sakit')->count(),
+    //         'cuti'       => $daftarAbsensi->where('status', 'cuti')->count(),
+    //         'tugas_luar' => $daftarAbsensi->where('status', 'tugas_luar')->count(),
+    //         'alpha'      => $daftarAbsensi->where('status', 'alpha')->count(),
+    //         'total'      => $daftarAbsensi->count(),
+    //     ];
+
+    //     $pdf = Pdf::loadView('pdf.guru.absensi', [
+    //         'guru'          => $guru,
+    //         'daftarAbsensi' => $daftarAbsensi,
+    //         'setting'       => $setting,
+    //         'sekolah'       => $sekolah,
+    //         'bulan'         => $bulan,
+    //         'tahun'         => $tahun,
+    //         'statistik'     => $statistik
+    //     ]);
+
+    //     $paperSize = $setting->paper_size ?? 'A4';
+    //     $orientation = $setting->orientation ?? 'portrait';
+
+    //     return $pdf->setPaper($paperSize, $orientation)
+    //                ->stream("Rapor_Absensi_{$guru->nama}_{$bulan}_{$tahun}.pdf");
+    // }
+
+    public function cetakExcel(Request $request)
     {
         $guru = $this->guruAktif();
         if (!$guru) abort(403, 'Akun ini tidak terhubung dengan data guru.');
@@ -293,40 +340,9 @@ class AbsensiController extends Controller
         $bulan = (int) $request->query('bulan', now()->month);
         $tahun = (int) $request->query('tahun', now()->year);
 
-        $setting = ReportSetting::first();
-        $sekolah = Sekolah::first();
+        $namaGuruClean = preg_replace('/[^A-Za-z0-9\-]/', '_', $guru->nama);
+        $filename = "Rekap_Absensi_{$namaGuruClean}_{$bulan}_{$tahun}.xlsx";
 
-        $daftarAbsensi = Absensi::where('guru_id', $guru->id)
-            ->whereMonth('tanggal', $bulan)
-            ->whereYear('tanggal', $tahun)
-            ->orderBy('tanggal', 'asc')
-            ->get();
-
-        $statistik = [
-            'hadir'      => $daftarAbsensi->where('status', 'hadir')->count(),
-            'terlambat'  => $daftarAbsensi->where('status', 'terlambat')->count(),
-            'izin'       => $daftarAbsensi->where('status', 'izin')->count(),
-            'sakit'      => $daftarAbsensi->where('status', 'sakit')->count(),
-            'cuti'       => $daftarAbsensi->where('status', 'cuti')->count(),
-            'tugas_luar' => $daftarAbsensi->where('status', 'tugas_luar')->count(),
-            'alpha'      => $daftarAbsensi->where('status', 'alpha')->count(),
-            'total'      => $daftarAbsensi->count(),
-        ];
-
-        $pdf = Pdf::loadView('pdf.guru.absensi', [
-            'guru'          => $guru,
-            'daftarAbsensi' => $daftarAbsensi,
-            'setting'       => $setting,
-            'sekolah'       => $sekolah,
-            'bulan'         => $bulan,
-            'tahun'         => $tahun,
-            'statistik'     => $statistik
-        ]);
-
-        $paperSize = $setting->paper_size ?? 'A4';
-        $orientation = $setting->orientation ?? 'portrait';
-
-        return $pdf->setPaper($paperSize, $orientation)
-                   ->stream("Rapor_Absensi_{$guru->nama}_{$bulan}_{$tahun}.pdf");
+        return Excel::download(new AbsensiGuruExport($guru, $bulan, $tahun), $filename);
     }
 }

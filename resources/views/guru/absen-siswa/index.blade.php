@@ -1,62 +1,100 @@
 @extends('layouts.guru')
-@section('page_title', 'Absen Siswa')
-@section('title', 'Absen Siswa')
+@section('page_title', 'Absensi Siswa')
+@section('title', 'Absensi Siswa')
+
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="min-h-screen bg-[#FAF8F5] text-slate-800 pb-16 font-serif">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <!-- Header & Filter Tanggal -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-        <div>
-            <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                <i class="fas fa-clipboard-user text-indigo-600"></i> Absensi Siswa
-            </h1>
-            <p class="text-sm text-slate-500 mt-1">Pilih jadwal pelajaran untuk mengisi atau mengoreksi absensi.</p>
-        </div>
-        <div class="flex items-center gap-2 bg-white p-2 rounded-xl border border-slate-200 shadow-sm w-fit">
-            <i class="fas fa-calendar-day text-slate-400 ms-2"></i>
-            <input type="date" id="tanggalInput" 
-                class="border-0 focus:ring-0 text-sm font-semibold text-slate-700 bg-transparent cursor-pointer"
-                value="{{ date('Y-m-d') }}" 
-                max="{{ date('Y-m-d') }}">
+    <!-- Header / Title & Filter Section -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-6">
+        <div class="bg-white rounded-xl border border-amber-900/10 shadow-sm p-6 sm:p-8 relative overflow-hidden">
+            
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <!-- Title Info -->
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-lg bg-emerald-900/5 flex items-center justify-center text-emerald-800 shrink-0">
+                        <i class="fas fa-clipboard-user text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl sm:text-3xl font-bold font-serif text-slate-900 tracking-tight">
+                            Absensi Siswa
+                        </h1>
+                        <p class="text-xs sm:text-sm text-slate-600 font-sans mt-0.5">
+                            Pilih jadwal pelajaran untuk mengisi atau mengoreksi presensi kelas.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Control / Filter Tanggal -->
+                <div class="w-full md:w-auto bg-[#FAF8F5] p-3 rounded-lg border border-amber-900/15 shadow-inner font-sans">
+                    <label for="tanggalInput" class="block text-[11px] font-semibold uppercase tracking-wider text-amber-900 mb-1 px-0.5">
+                        <i class="far fa-calendar-alt me-1 text-amber-700"></i> Pilih Tanggal Presensi
+                    </label>
+                    <input 
+                        type="date" 
+                        id="tanggalInput" 
+                        value="{{ date('Y-m-d') }}" 
+                        class="w-full md:w-48 bg-white text-slate-800 font-medium px-3 py-2 rounded border border-amber-900/20 focus:border-emerald-800 focus:ring-1 focus:ring-emerald-800 focus:outline-none shadow-sm text-xs sm:text-sm transition-all"
+                    >
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Alert Banner Error Global -->
-    <div id="errorAlert" class="hidden mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center justify-between">
-        <div class="flex items-center gap-2">
-            <i class="fas fa-triangle-exclamation text-red-500"></i>
-            <span id="errorMessage"></span>
-        </div>
-        <button type="button" onclick="hideError()" class="text-red-400 hover:text-red-600">
-            <i class="fas fa-xmark"></i>
-        </button>
-    </div>
+    <!-- Main Container -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-    <!-- Loading Skeleton -->
-    <div id="loadingState" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
-        @for($i = 0; $i < 3; $i++)
-        <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm animate-pulse">
-            <div class="h-4 bg-slate-200 rounded w-1/3 mb-4"></div>
-            <div class="h-6 bg-slate-200 rounded w-3/4 mb-2"></div>
-            <div class="h-4 bg-slate-200 rounded w-1/2 mb-6"></div>
-            <div class="h-10 bg-slate-200 rounded w-full"></div>
+        <!-- Global Error Alert -->
+        <div id="errorAlert" class="hidden mb-6 p-4 rounded-xl bg-rose-50/80 border border-rose-200 text-rose-800 text-sm flex items-start justify-between shadow-sm animate-fade-in font-sans">
+            <div class="flex items-start gap-3">
+                <div class="p-1.5 bg-rose-100/80 rounded text-rose-700 mt-0.5 shrink-0">
+                    <i class="fas fa-triangle-exclamation text-base"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-rose-900 font-serif">Terjadi Kesalahan</h4>
+                    <span id="errorMessage" class="text-xs text-rose-700 leading-relaxed"></span>
+                </div>
+            </div>
+            <button type="button" onclick="hideError()" class="text-rose-400 hover:text-rose-600 p-1 rounded transition-colors">
+                <i class="fas fa-xmark text-lg"></i>
+            </button>
         </div>
-        @endfor
-    </div>
 
-    <!-- Container Daftar Jadwal -->
-    <div id="jadwalContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        <!-- Skeleton Loading State -->
+        <div id="loadingState" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
+            @for($i = 0; $i < 3; $i++)
+            <div class="bg-white p-6 rounded-xl border border-amber-900/10 shadow-sm animate-pulse flex flex-col justify-between h-56">
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <div class="h-4 bg-slate-200 rounded w-1/3"></div>
+                        <div class="h-4 bg-slate-200 rounded-full w-1/4"></div>
+                    </div>
+                    <div class="h-6 bg-slate-200 rounded w-3/4"></div>
+                    <div class="h-4 bg-slate-200 rounded w-1/2"></div>
+                </div>
+                <div class="pt-4 border-t border-slate-100 space-y-2">
+                    <div class="h-3 bg-slate-200 rounded w-full"></div>
+                    <div class="h-8 bg-slate-200 rounded w-full"></div>
+                </div>
+            </div>
+            @endfor
+        </div>
+
+        <!-- Jadwal List Grid Container -->
+        <div id="jadwalContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const tanggalInput = document.getElementById('tanggalInput');
-    fetchJadwal(tanggalInput.value);
-
-    tanggalInput.addEventListener('change', (e) => {
-        fetchJadwal(e.target.value);
-    });
+    if (tanggalInput) {
+        fetchJadwal(tanggalInput.value);
+        tanggalInput.addEventListener('change', (e) => {
+            fetchJadwal(e.target.value);
+        });
+    }
 });
 
 function escapeHTML(str) {
@@ -100,16 +138,19 @@ async function fetchJadwal(tanggal) {
         const result = await response.json();
 
         if (!response.ok) {
-            throw new Error(result.message || `Terjadi kesalahan (${response.status})`);
+            throw new Error(result.message || `Gagal mengambil data (${response.status})`);
         }
 
         renderJadwal(result.data);
     } catch (err) {
         showError(err.message);
         container.innerHTML = `
-            <div class="col-span-full text-center py-12 text-slate-400">
-                <i class="fas fa-circle-exclamation text-3xl mb-2"></i>
-                <p>Gagal memuat data jadwal. Silakan coba lagi.</p>
+            <div class="col-span-full bg-white rounded-xl p-8 text-center border border-amber-900/10 shadow-sm font-sans">
+                <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-3 text-xl border border-rose-200">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <p class="text-slate-800 font-serif font-bold text-base mb-1">Gagal Memuat Jadwal</p>
+                <p class="text-slate-500 text-xs">${escapeHTML(err.message)}</p>
             </div>`;
     } finally {
         loading.classList.add('hidden');
@@ -122,48 +163,89 @@ function renderJadwal(data) {
 
     if (listJadwal.length === 0) {
         container.innerHTML = `
-            <div class="col-span-full bg-white rounded-2xl p-12 text-center border border-slate-100 shadow-sm">
-                <i class="fas fa-calendar-xmark text-4xl text-slate-300 mb-3"></i>
-                <p class="text-slate-500 font-medium">Tidak ada jadwal mengajar pada hari <span class="font-bold text-slate-700">${escapeHTML(data.hari)}</span> (${escapeHTML(data.tanggal)}).</p>
+            <div class="col-span-full bg-white rounded-xl p-10 text-center border border-amber-900/10 shadow-sm font-sans">
+                <div class="w-16 h-16 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl border border-slate-200">
+                    <i class="fas fa-calendar-xmark"></i>
+                </div>
+                <h3 class="text-slate-900 font-serif font-bold text-lg mb-1">Tidak Ada Jadwal Mengajar</h3>
+                <p class="text-slate-500 text-xs sm:text-sm max-w-md mx-auto">
+                    Tidak ditemukan jadwal mengajar pada hari <span class="font-semibold text-emerald-900">${escapeHTML(data.hari)}</span> (${escapeHTML(data.tanggal)}).
+                </p>
             </div>`;
         return;
     }
 
     let html = '';
+    const watermarkUrl = "{{ asset('storage/images/logo.png') }}";
+
     listJadwal.forEach(j => {
+        const percent = j.total_siswa > 0 ? Math.round((j.sudah_diabsen / j.total_siswa) * 100) : 0;
+        
         const badgeStatus = j.selesai 
-            ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                <i class="fas fa-circle-check"></i> Selesai
+            ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-sans font-semibold bg-emerald-50 text-emerald-900 border border-emerald-800/20">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-700 animate-pulse"></span> Selesai
                </span>` 
-            : `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                <i class="fas fa-clock"></i> Belum Lengkap
+            : `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-sans font-semibold bg-amber-50 text-amber-900 border border-amber-800/20">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span> Belum Lengkap
                </span>`;
 
         const formUrl = `{{ route('guru.absen-siswa.form', ':id') }}`.replace(':id', j.id) + `?tanggal=${encodeURIComponent(data.tanggal)}`;
 
         html += `
-            <div class="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow duration-200 p-6 flex flex-col justify-between">
-                <div>
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="inline-flex items-center gap-1 text-xs font-medium text-indigo-700 bg-indigo-50 px-2.5 py-1 rounded-lg">
-                            <i class="far fa-clock"></i> ${escapeHTML(j.jam_masuk)} - ${escapeHTML(j.jam_pulang)}
+            <div class="group relative bg-white rounded-xl border border-amber-900/15 shadow-sm hover:shadow-xl hover:border-emerald-800/40 transition-all duration-300 p-6 flex flex-col justify-between overflow-hidden">
+                
+                <!-- BACKGROUND LOGO WATERMARK -->
+                <div class="absolute -bottom-6 -right-6 w-40 h-40 opacity-[0.06] group-hover:opacity-[0.12] transition-all duration-300 pointer-events-none select-none transform group-hover:scale-105">
+                    <img src="${watermarkUrl}" 
+                         alt="Watermark Logo" 
+                         class="w-full h-full object-contain filter grayscale" />
+                </div>
+
+                <!-- Card Content -->
+                <div class="relative z-10">
+                    <!-- Top Status & Jam -->
+                    <div class="flex items-center justify-between gap-2 mb-3 font-sans">
+                        <span class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 bg-slate-100/80 border border-slate-200 px-2 py-0.5 rounded">
+                            <i class="far fa-clock text-amber-700"></i> ${escapeHTML(j.jam_masuk)} - ${escapeHTML(j.jam_pulang)} WIB
                         </span>
                         ${badgeStatus}
                     </div>
-                    <h3 class="text-lg font-bold text-slate-800 mb-1">${escapeHTML(j.nama_mapel)}</h3>
-                    <p class="text-sm text-slate-500 flex items-center gap-1.5 mb-4">
-                        <i class="fas fa-school text-slate-400"></i> Kelas: <span class="font-semibold text-slate-700">${escapeHTML(j.nama_kelas)}</span>
+
+                    <!-- Mapel Title -->
+                    <h3 class="text-xl font-bold font-serif text-slate-900 leading-snug mb-2 group-hover:text-emerald-900 transition-colors">
+                        ${escapeHTML(j.nama_mapel)}
+                    </h3>
+
+                    <!-- Kelas Info -->
+                    <p class="text-xs font-sans text-slate-600 flex items-center gap-1.5 mb-5">
+                        <i class="fas fa-door-open text-slate-400"></i> Kelas: 
+                        <span class="font-bold text-slate-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-800/20">
+                            ${escapeHTML(j.nama_kelas)}
+                        </span>
                     </p>
+
+                    <!-- Progress Presensi Siswa -->
+                    <div class="space-y-1.5 mb-6 font-sans bg-[#FAF8F5] p-3 rounded-lg border border-amber-900/10">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-slate-600 font-medium">Progres Presensi</span>
+                            <span class="font-bold text-slate-800">${j.sudah_diabsen} / ${j.total_siswa} Siswa</span>
+                        </div>
+                        <div class="w-full bg-slate-200/70 rounded-full h-2 overflow-hidden">
+                            <div class="bg-emerald-800 h-2 rounded-full transition-all duration-300" style="width: ${percent}%"></div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
-                    <span class="text-xs text-slate-500">
-                        <i class="fas fa-users text-slate-400 me-1"></i> ${j.sudah_diabsen} / ${j.total_siswa} Siswa
-                    </span>
-                    <a href="${formUrl}" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-colors">
-                        ${j.selesai ? '<i class="fas fa-pen-to-square"></i> Edit Absen' : '<i class="fas fa-clipboard-check"></i> Isi Absen'}
+                <!-- Action Button -->
+                <div class="relative z-10 pt-2 font-sans">
+                    <a href="${formUrl}" class="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 text-xs sm:text-sm font-semibold tracking-wide text-emerald-900 bg-emerald-50/50 hover:bg-emerald-800 hover:text-white rounded-lg transition-all duration-200 border border-emerald-800/30 hover:border-emerald-800 shadow-sm active:scale-[0.99]">
+                        ${j.selesai 
+                            ? '<i class="fas fa-pen-to-square text-xs"></i> Edit Presensi' 
+                            : '<i class="fas fa-clipboard-check text-xs"></i> Isi Presensi'
+                        }
                     </a>
                 </div>
+
             </div>`;
     });
 

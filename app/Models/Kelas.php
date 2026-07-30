@@ -14,7 +14,7 @@ class Kelas extends Model
 
     protected $fillable = [
         'nama_kelas',
-        'wali_kelas', // Merupakan foreign key ke tabel gurus (id)
+        'wali_kelas', 
         'jumlah_siswa',
         'ruangan',
         'catatan',
