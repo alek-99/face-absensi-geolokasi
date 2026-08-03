@@ -7,9 +7,7 @@
     {{-- Header Banner StartAdmin Style --}}
     <div class="bg-white p-5 rounded-md border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div class="flex items-center space-x-4">
-            <div class="w-12 h-12 text-white rounded-md flex items-center justify-center shadow-sm">
-                <img src="{{ asset('storage/images/icon-dashboard.png') }}" class="" alt="icon-dashboard"></img>
-            </div>
+           
             <div>
                 <div class="flex items-center gap-2">
                     <h1 class="text-xl font-bold text-black">DASHBOARD ADMIN</h1>
