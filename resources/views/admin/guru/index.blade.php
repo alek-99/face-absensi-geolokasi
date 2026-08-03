@@ -9,17 +9,17 @@
         {{-- Row 1: Judul Page & Tombol Utama --}}
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div class="flex items-center gap-3.5">
-                <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl border border-indigo-100/50">
+                <div class="p-3 bg-indigo-50 text-green-600 rounded-xl border border-indigo-100/50">
                     <i class="fa-solid fa-users-gear text-2xl"></i>
                 </div>
                 <div>
-                    <h2 class="text-2xl font-bold tracking-tight text-slate-800">Data Guru</h2>
+                    <h2 class="text-2xl font-bold tracking-tight text-slate-800">DATA GURU</h2>
                     <p class="text-slate-500 text-sm mt-0.5">Kelola data profil dan akun login guru dalam satu panel.</p>
                 </div>
             </div>
 
             <div>
-                <a href="{{ route('admin.guru.create') }}" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-xl shadow-xs transition-all text-xs cursor-pointer">
+                <a href="{{ route('admin.guru.create') }}" class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold px-5 py-2.5 shadow-xs transition-all text-xl cursor-pointer">
                     <i class="fa-solid fa-plus text-xs"></i>
                     <span>Tambah Guru</span>
                 </a>
@@ -65,14 +65,14 @@
     @endif
 
     {{-- AREA KONTEN UTAMA (Tabel) --}}
-    <div class="bg-white rounded-2xl shadow-xs border border-slate-200/80 overflow-hidden">
-        <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+    <div class="bg-white shadow-xs border border-slate-200/80 overflow-hidden">
+        {{-- <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
             <h3 class="text-slate-800 font-bold text-base">Daftar Guru</h3>
         </div>
-        
+         --}}
         <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left text-slate-600">
-                <thead class="text-xs text-slate-500 uppercase bg-slate-50/70 border-b border-slate-200/80 font-bold tracking-wider">
+            <table class="w-full text-sm text-left text-white">
+                <thead class="text-sm text-white uppercase bg-green-600 border-b border-slate-200/80 font-bold tracking-wider">
                     <tr>
                         <th scope="col" class="px-6 py-4 text-center w-12">No</th>
                         <th scope="col" class="px-6 py-4">Foto & Nama</th>

@@ -30,60 +30,69 @@
 
 <body class="bg-[#FDFDFC] dark:bg-[#0a0a0a] text-[#1b1b18] dark:text-[#EDEDEC] flex items-center justify-center min-h-screen p-6 font-['Instrument_Sans',sans-serif] antialiased">
 
+    <!-- Card Container -->
     <div class="w-full max-w-md bg-white dark:bg-[#161615] border border-[#e3e3e0] dark:border-[#3E3E3A] p-8 rounded-2xl shadow-[0px_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0px_8px_30px_rgb(0,0,0,0.2)] flex flex-col items-center relative overflow-hidden group">
         
-        <!-- Ornamen Latar Belakang (Aksen Modern) -->
-        <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl dark:bg-blue-500/5 pointer-events-none"></div>
-        <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl dark:bg-emerald-500/5 pointer-events-none"></div>
+        <!-- Ornamen Glow Warna Modern -->
+        <div class="absolute -top-12 -right-12 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl dark:bg-blue-500/10 pointer-events-none"></div>
+        <div class="absolute -bottom-12 -left-12 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl dark:bg-emerald-500/10 pointer-events-none"></div>
 
-        <!-- Branding / Logo -->
-        <div class="text-center z-10">
+        <!-- Watermark / Overlay Logo Latar Belakang -->
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden select-none opacity-[0.06] dark:opacity-[0.08] transition-opacity duration-300 group-hover:opacity-[0.10]">
+            <img src="{{ asset('storage/images/logo.png') }}" 
+                 alt="" 
+                 class="w-72 h-72 object-contain grayscale scale-110 -rotate-12 transform"
+                 onerror="this.style.display='none'">
+        </div>
+
+        <!-- Branding / Header Logo Utama -->
+        <div class="text-center z-10 w-full">
             <div class="mb-5 relative inline-block">
                 <!-- Fallback Icon jika logo.png tidak ditemukan -->
-                <div class="w-20 h-20 bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center text-3xl mx-auto shadow-sm">
+                <div class="w-20 h-20 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center text-3xl mx-auto shadow-sm border border-blue-100 dark:border-blue-900/30">
                     <i class="fa-solid fa-user-shield"></i>
                 </div>
-                <!-- Gambar Logo -->
+                <!-- Gambar Logo Utama -->
                 <img src="{{ asset('storage/images/logo.png') }}" 
                      alt="Logo SIAFI" 
-                     class="absolute top-0 left-0 w-20 h-20 mx-auto object-contain bg-[#FDFDFC] dark:bg-[#0a0a0a] rounded-2xl" 
+                     class="absolute top-0 left-0 w-20 h-20 mx-auto object-contain bg-white dark:bg-[#161615] rounded-2xl p-1" 
                      onerror="this.style.display='none'">
             </div>
             
             <h1 class="text-3xl font-bold tracking-tight text-[#1b1b18] dark:text-[#EDEDEC] mb-1">
                 SIAFI
             </h1>
-            <p class="text-sm font-medium uppercase tracking-wider text-blue-600 dark:text-blue-400 mb-2">
+            <p class="text-xs font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-2">
                 Sistem Absensi Face ID
             </p>
-            <p class="text-sm text-[#706f6c] dark:text-[#A1A09A] max-w-xs mx-auto">
-                Silahkan masuk ke portal aplikasi atau unduh aplikasi mandiri di perangkat Anda.
+            <p class="text-sm text-[#706f6c] dark:text-[#A1A09A] max-w-xs mx-auto leading-relaxed">
+                Silakan masuk ke portal aplikasi atau unduh aplikasi mandiri di perangkat Anda.
             </p>
         </div>
 
         <!-- Garis Pemisah Eksklusif -->
-        <hr class="w-full border-[#e3e3e0] dark:border-[#3E3E3A] my-6">
+        <hr class="w-full border-[#e3e3e0] dark:border-[#3E3E3A] my-6 z-10">
 
         <!-- Tombol Aksi Utama -->
         <div class="w-full space-y-3.5 z-10">
             <!-- Link Masuk Aplikasi -->
             <a href="{{ route('login') }}" 
-               class="flex items-center justify-between w-full bg-[#1b1b18] hover:bg-black text-white dark:bg-[#eeeeec] dark:hover:bg-white dark:text-[#1C1C1A] px-5 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 transform active:scale-[0.98] shadow-md group">
+               class="flex items-center justify-between w-full bg-[#1b1b18] hover:bg-black text-white dark:bg-[#eeeeec] dark:hover:bg-white dark:text-[#1C1C1A] px-5 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 transform active:scale-[0.98] shadow-md group/btn">
                 <span class="flex items-center gap-3">
                     <i class="fa-solid fa-right-to-bracket text-base opacity-90"></i>
                     Masuk ke Aplikasi
                 </span>
-                <i class="fa-solid fa-arrow-right text-xs transition-transform duration-200 group-hover:translate-x-1"></i>
+                <i class="fa-solid fa-arrow-right text-xs transition-transform duration-200 group-hover/btn:translate-x-1"></i>
             </a>
 
             <!-- Tombol Unduh / Install PWA -->
-            <button id="installBtn" style="display:none"
-                    class="flex items-center justify-between w-full bg-transparent border border-[#e3e3e0] dark:border-[#3E3E3A] hover:bg-gray-50 dark:hover:bg-zinc-900/50 text-[#1b1b18] dark:text-[#EDEDEC] px-5 py-3.5 rounded-xl text-sm font-medium transition-all duration-200 transform active:scale-[0.98]">
+            <button id="installBtn" style="display:none !important;"
+                    class="flex items-center justify-between w-full bg-white/80 dark:bg-[#161615]/80 backdrop-blur-sm border border-[#e3e3e0] dark:border-[#3E3E3A] hover:bg-gray-50 dark:hover:bg-zinc-900/50 text-[#1b1b18] dark:text-[#EDEDEC] px-5 py-3.5 rounded-xl text-sm font-medium transition-all duration-200 transform active:scale-[0.98]">
                 <span class="flex items-center gap-3">
                     <i class="fa-solid fa-download text-base text-blue-500"></i>
                     Install Aplikasi SIAFI
                 </span>
-                <span class="text-[11px] font-semibold bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-md">PWA</span>
+                <span class="text-[11px] font-semibold bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-md border border-blue-200/50 dark:border-blue-800/50">PWA</span>
             </button>
         </div>
 
@@ -91,25 +100,22 @@
         <div class="mt-8 text-center w-full z-10">
             <a href="https://wa.me/6281389090873?text=Halo%20Admin%20SIAFI,%20saya%20butuh%20bantuan%20terkait%20login."
                target="_blank" rel="noopener noreferrer"
-               class="text-xs text-[#706f6c] dark:text-[#A1A09A] hover:text-[#1b1b18] dark:hover:text-[#EDEDEC] transition-colors inline-flex items-center gap-1.5 font-medium group">
-                <i class="fa-brands fa-whatsapp text-emerald-500 text-sm transition-transform group-hover:scale-110"></i>
+               class="text-xs text-[#706f6c] dark:text-[#A1A09A] hover:text-[#1b1b18] dark:hover:text-[#EDEDEC] transition-colors inline-flex items-center gap-1.5 font-medium group/wa">
+                <i class="fa-brands fa-whatsapp text-emerald-500 text-sm transition-transform group-hover/wa:scale-110"></i>
                 Butuh bantuan? Hubungi Admin
             </a>
         </div>
         
     </div>
 
+    <!-- Script Logic -->
     <script>
         // 1. Registrasi Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/sw.js')
-                    .then(reg => { 
-                        console.log("Service Worker aktif:", reg.scope); 
-                    })
-                    .catch(err => { 
-                        console.error("Service Worker gagal:", err); 
-                    });
+                    .then(reg => console.log("Service Worker aktif:", reg.scope))
+                    .catch(err => console.error("Service Worker gagal:", err));
             });
         }
 
@@ -140,7 +146,7 @@
                 const { outcome } = await deferredPrompt.userChoice;
                 
                 if (outcome === 'accepted') {
-                    installBtn.style.display = 'none';
+                    installBtn.style.setProperty('display', 'none', 'important');
                 }
                 
                 deferredPrompt = null;
@@ -149,7 +155,7 @@
 
         // 4. Sembunyikan jika sukses terinstal
         window.addEventListener('appinstalled', () => {
-            if (installBtn) installBtn.style.display = 'none';
+            if (installBtn) installBtn.style.setProperty('display', 'none', 'important');
             deferredPrompt = null;
         });
     </script>

@@ -36,18 +36,18 @@
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-gray-100 pb-5">
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                    <i class="fa-solid fa-calendar-days text-indigo-600"></i> Kelola Jadwal Pelajaran
+                    <i class="fa-solid fa-calendar-days text-green-600"></i> DATA JADWAL PELAJARAN
                 </h1>
                 <p class="text-sm text-gray-500 mt-0.5">Atur dan pantau jadwal pelajaran sekolah secara terpusat.</p>
             </div>
             <div class="flex flex-wrap gap-2">
-                <a href="{{ route('admin.jadwal.exportExcel') }}" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition shadow-sm flex items-center gap-2">
+                <a href="{{ route('admin.jadwal.exportExcel') }}" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium transition shadow-sm flex items-center gap-2">
                     <i class="fa-solid fa-file-excel"></i> Export Excel
                 </a>
-                <a href="{{ route('admin.jadwal.pdf') }}" target="_blank" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-sm font-medium transition shadow-sm flex items-center gap-2">
+                <a href="{{ route('admin.jadwal.pdf') }}" target="_blank" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white  text-sm font-medium transition shadow-sm flex items-center gap-2">
                     <i class="fa-solid fa-file-pdf"></i> Cetak PDF
                 </a>
-                <button onclick="openCreateModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition shadow-sm flex items-center gap-2">
+                <button onclick="openCreateModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition shadow-sm flex items-center gap-2">
                     <i class="fa-solid fa-plus"></i> Tambah Jadwal
                 </button>
             </div>
@@ -55,7 +55,7 @@
 
         {{-- Bottom Row: Statistik Hari --}}
         <div>
-            <h2 class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Ringkasan Sesi per Hari</h2>
+            <h2 class="text-sm font-semibold uppercase tracking-wider text-black mb-3">Ringkasan Sesi per Hari</h2>
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                 @php
                     $hariOrder = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -64,18 +64,18 @@
                     @php
                         $stat = isset($statistik) ? $statistik->firstWhere('hari', $hari) : null;
                     @endphp
-                    <div class="bg-gray-50 border border-gray-200/80 rounded-lg p-3 hover:bg-white hover:border-indigo-300 hover:shadow-sm transition">
+                    <div class="bg-green-500 border border-gray-200/80 p-3 hover:bg-green-600 hover:border-green-300 hover:shadow-sm transition">
                         <div class="flex items-center justify-between mb-1.5">
-                            <span class="text-xs font-bold uppercase tracking-wider text-indigo-600">{{ $hari }}</span>
-                            <i class="fa-regular fa-clock text-gray-400 text-xs"></i>
+                            <span class="text-xs font-bold uppercase tracking-wider text-white">{{ $hari }}</span>
+                            <i class="fa-regular fa-clock text-white text-xs"></i>
                         </div>
-                        <div class="text-lg font-bold text-gray-900 mb-1">
-                            {{ $stat ? $stat->jumlah_jadwal : 0 }} <span class="text-xs font-normal text-gray-500">Sesi</span>
+                        <div class="text-lg font-bold text-white mb-1">
+                            {{ $stat ? $stat->jumlah_jadwal : 0 }} <span class="text-xs font-normal text-white">Sesi</span>
                         </div>
-                        <div class="text-[11px] text-gray-500 space-y-0.5">
-                            <p class="truncate"><i class="fa-solid fa-user-tie text-[9px] w-3 text-gray-400"></i> {{ $stat ? $stat->jumlah_guru : 0 }} Guru</p>
-                            <p class="truncate"><i class="fa-solid fa-book text-[9px] w-3 text-gray-400"></i> {{ $stat ? $stat->jumlah_mapel : 0 }} Mapel</p>
-                            <p class="truncate"><i class="fa-solid fa-door-open text-[9px] w-3 text-gray-400"></i> {{ $stat ? $stat->jumlah_kelas : 0 }} Kelas</p>
+                        <div class="text-[11px] text-white space-y-0.5">
+                            <p class="truncate"><i class="fa-solid fa-user-tie text-[9px] w-3 text-white"></i> {{ $stat ? $stat->jumlah_guru : 0 }} Guru</p>
+                            <p class="truncate"><i class="fa-solid fa-book text-[9px] w-3 text-white"></i> {{ $stat ? $stat->jumlah_mapel : 0 }} Mapel</p>
+                            <p class="truncate"><i class="fa-solid fa-door-open text-[9px] w-3 text-white"></i> {{ $stat ? $stat->jumlah_kelas : 0 }} Kelas</p>
                         </div>
                     </div>
                 @endforeach
@@ -85,7 +85,7 @@
     </div>
 
     {{-- Filter & Search Section --}}
-    <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col md:flex-row gap-3 justify-between items-center">
+    <div class="bg-white border border-gray-200 p-4 shadow-sm flex flex-col md:flex-row gap-3 justify-between items-center">
         <form action="{{ route('admin.jadwal.index') }}" method="GET" class="flex flex-wrap items-center gap-3 w-full md:w-auto">
             <div class="relative w-full md:w-64">
                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
@@ -107,10 +107,10 @@
     </div>
 
     {{-- Table Section --}}
-    <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+    <div class="bg-white border border-gray-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm text-gray-600">
-                <thead class="bg-gray-50 text-gray-700 text-xs uppercase tracking-wider border-b border-gray-200">
+                <thead class="bg-green-600 text-white text-sm uppercase tracking-wider border-b border-gray-200">
                     <tr>
                         <th class="px-4 py-3.5 font-semibold">Hari & Waktu</th>
                         <th class="px-4 py-3.5 font-semibold">Mata Pelajaran</th>
@@ -129,7 +129,7 @@
                                 </span>
                                 <div class="text-xs text-gray-500 mt-1 flex items-center gap-1">
                                     <i class="fa-regular fa-clock text-gray-400"></i>
-                                    {{ substr($jadwal->jam_masuk, 0, 5) }} - {{ substr($jadwal->jam_pulang, 0, 5) }}
+                                    {{ ($jadwal->jam_masuk) }} - {{($jadwal->jam_pulang) }}
                                 </div>
                             </td>
                             <td class="px-4 py-3">

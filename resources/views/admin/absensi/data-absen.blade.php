@@ -7,9 +7,9 @@
     {{-- Header Halaman --}}
     <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 bg-white/70 backdrop-blur-md p-4  shadow-sm border-l-4 border-green-600">
         <div>
-            <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                <i class="fa-solid fa-calendar-days text-green-500"></i>
-                Riwayat & Data Absensi Guru
+            <h1 class="text-2xl font-sans font-bold text-slate-800 flex items-center gap-2">
+              
+                RIWAYAT & DATA ABSENSI GURU
             </h1>
             <p class="text-sm text-slate-500">Melihat, memantau, dan memfilter riwayat rekapitulasi kehadiran seluruh guru.</p>
         </div>
@@ -19,11 +19,11 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
         {{-- KOLOM KIRI: Tabel Data Absensi (8/12 Grid) --}}
-        <div class="lg:col-span-8 order-2 lg:order-1 bg-white/70 backdrop-blur-md rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+        <div class="lg:col-span-8 order-2 lg:order-1 bg-white/70 backdrop-blur-md  shadow-sm border border-slate-200/80 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-slate-50/80 backdrop-blur-sm border-b border-slate-200/80 text-xs font-semibold tracking-wider text-slate-500 uppercase">
+                        <tr class="bg-green-600 backdrop-blur-sm border-b border-slate-200/80 text-sm font-semibold tracking-wider text-white uppercase">
                             <th class="px-5 py-4"><i class="fa-solid fa-hashtag mr-1"></i> No</th>
                             <th class="px-5 py-4"><i class="fa-solid fa-calendar-day mr-1"></i> Tanggal</th>
                             <th class="px-5 py-4"><i class="fa-solid fa-user-tie mr-1"></i> Nama Guru</th>
@@ -104,7 +104,7 @@
         <div class="lg:col-span-4 order-1 lg:order-2 space-y-6">
 
             {{-- Panel Export Excel --}}
-            <div class="bg-emerald-50/60 backdrop-blur-md rounded-2xl shadow-sm border border-emerald-200/80 p-6">
+            <div class="bg-transparent backdrop-blur-md shadow-sm border border-emerald-200/80 p-6">
                 <h2 class="text-xs font-bold uppercase text-emerald-800 tracking-wider mb-2 flex items-center gap-1.5">
                     <i class="fa-solid fa-file-excel text-emerald-600 text-base"></i> Cetak Rekapitulasi Excel
                 </h2>
@@ -147,7 +147,7 @@
             </div>
 
             {{-- Panel Filter --}}
-            <div class="bg-white/70 backdrop-blur-md rounded-2xl shadow-sm border border-slate-200/80 p-6">
+            <div class="bg-white/70 backdrop-blur-md shadow-sm border border-slate-200/80 p-6">
                 <h2 class="text-xs font-bold uppercase text-slate-400 tracking-wider mb-4 flex items-center gap-1.5">
                     <i class="fa-solid fa-sliders text-[#7367f0]"></i> Filter Pencarian
                 </h2>
@@ -202,7 +202,7 @@
 
                     {{-- Tombol Filter --}}
                     <div class="flex flex-col gap-2 mt-2 pt-4 border-t border-slate-100">
-                        <button type="submit" class="w-full py-2.5 text-sm font-semibold bg-[#7367f0] hover:bg-[#6054e0] text-white rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5">
+                        <button type="submit" class="w-full py-2.5 text-sm font-semibold bg-green-600 hover:bg-green-700 text-white rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5">
                             <i class="fa-solid fa-magnifying-glass"></i> Terapkan Filter
                         </button>
                         <a href="{{ route('admin.absensi.index') }}" class="w-full py-2 text-sm font-semibold bg-slate-100/80 hover:bg-slate-200/80 text-slate-600 border border-slate-200/80 rounded-xl transition-all flex items-center justify-center gap-1.5">

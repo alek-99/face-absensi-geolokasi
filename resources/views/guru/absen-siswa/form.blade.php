@@ -3,7 +3,6 @@
 @section('title', 'Form Absen Siswa')
 
 @section('content')
-<!-- pb-44 di mobile agar kartu siswa terbawah tidak tertutup floating bar & bottom nav -->
 <div class="min-h-screen bg-slate-50/60 pb-44 md:pb-16 text-slate-800 relative">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
@@ -53,23 +52,22 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm mb-4">
                 <div class="flex items-center gap-2.5">
                     <span class="relative flex h-3 w-3">
-                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
                     </span>
                     <span class="text-sm font-bold text-slate-700">Daftar Kehadiran Siswa</span>
                     <span id="jumlahSiswa" class="text-xs font-semibold text-slate-400"></span>
                 </div>
 
-                <button type="button" onclick="setSemuaHadir()" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100/80 rounded-xl transition-all border border-emerald-200/80 active:scale-95 cursor-pointer shadow-sm">
+                <button type="button" onclick="setSemuaHadir()" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100/80 rounded-xl transition-all border border-emerald-200/80 active:scale-95 cursor-pointer shadow-sm">
                     <i class="fas fa-check-double text-emerald-600"></i> Set Semua Hadir
                 </button>
             </div>
 
-            <!-- Main Content: single responsive list (mobile-first) -->
-            <!-- Mobile: stacked cards. md+: reflows into a table-like row via CSS grid on the SAME markup (no duplicate DOM, no JS sync needed) -->
+            <!-- Table / List Card -->
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden mb-6">
 
-                <!-- Column header row: hidden on mobile, shown from md up -->
+                <!-- Header Grid (Desktop Only) -->
                 <div class="hidden md:grid md:grid-cols-[2.5rem_minmax(180px,1fr)_auto_minmax(180px,1fr)] md:gap-4 md:items-center bg-slate-50/80 border-b border-slate-200/80 text-xs uppercase tracking-wider text-slate-500 font-bold py-4 px-4">
                     <div class="text-center">#</div>
                     <div>Nama Siswa</div>
@@ -77,6 +75,7 @@
                     <div>Keterangan</div>
                 </div>
 
+                <!-- Skeleton Loader State -->
                 <div id="siswaList" class="divide-y divide-slate-100 text-sm">
                     @for ($i = 0; $i < 4; $i++)
                     <div class="p-4 md:py-4 md:px-4 md:grid md:grid-cols-[2.5rem_minmax(180px,1fr)_auto_minmax(180px,1fr)] md:gap-4 md:items-center animate-pulse">
@@ -99,20 +98,13 @@
                 </div>
             </div>
 
-            <!-- ======================================================== -->
-            <!-- REUSABLE FLOATING ACTION DOCK                              -->
-            <!-- Mobile: bottom-20, di atas Bottom Nav. Desktop: menyatu di kanan bawah container -->
-            <!-- ======================================================== -->
-            <div class="fixed bottom-20 inset-x-3 md:relative md:bottom-0 md:inset-x-0 z-[99999] pointer-events-none">
-                <div class="max-w-7xl mx-auto flex justify-center md:justify-end">
-                    <div class="pointer-events-auto w-full max-w-md md:w-auto bg-slate-900/90 text-white backdrop-blur-xl p-2.5 sm:p-3 rounded-2xl border border-white/20 shadow-[0_12px_40px_rgba(0,0,0,0.35)] transition-all transform hover:scale-[1.01]">
-                        <button type="submit" id="btnSimpan" disabled
-                            class="w-full md:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold shadow-md shadow-emerald-500/20 active:scale-[0.98] transition-all text-sm sm:text-base cursor-pointer">
-                            <i class="fas fa-floppy-disk text-lg"></i>
-                            <span>Simpan Absensi</span>
-                        </button>
-                    </div>
-                </div>
+            <!-- Floating Action Button (Compact & Interactive Right Dock) -->
+            <div class="fixed bottom-20 right-4 sm:right-6 md:bottom-6 md:right-8 z-[9999]">
+                <button type="submit" id="btnSimpan" disabled
+                    class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold text-xs sm:text-sm shadow-lg shadow-emerald-900/20 border border-emerald-400/30 ring-2 ring-emerald-500/20 hover:ring-emerald-400/50 hover:shadow-emerald-600/30 active:scale-95 transition-all duration-200 cursor-pointer backdrop-blur-md">
+                    <i class="fas fa-floppy-disk text-sm"></i>
+                    <span>Simpan Absensi</span>
+                </button>
             </div>
 
         </form>
@@ -225,10 +217,10 @@ function renderForm(data) {
         html += `
             <div class="p-4 md:py-3.5 md:px-4 md:grid md:grid-cols-[2.5rem_minmax(180px,1fr)_auto_minmax(180px,1fr)] md:gap-4 md:items-center hover:bg-slate-50/80 transition-colors">
 
-                <!-- # (desktop only) -->
+                <!-- Index Number (desktop only) -->
                 <div class="hidden md:flex items-center justify-center text-slate-400 font-semibold text-xs">${idx + 1}</div>
 
-                <!-- Nama -->
+                <!-- Student Info -->
                 <div class="mb-3 md:mb-0">
                     <span class="md:hidden inline-block text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md mb-1">#${idx + 1}</span>
                     <div class="font-bold text-slate-800 text-sm">${escapeHTML(s.nama)}</div>
@@ -236,9 +228,9 @@ function renderForm(data) {
                     <input type="hidden" name="kehadiran[${idx}][siswa_id]" value="${s.siswa_id}">
                 </div>
 
-                <!-- Status -->
+                <!-- Status Selector -->
                 <div class="mb-3 md:mb-0">
-                    <div class="grid grid-cols-4 md:inline-flex gap-1.5 bg-slate-100 md:bg-slate-100 p-1 rounded-xl border border-slate-200/80 w-full md:w-auto">
+                    <div class="grid grid-cols-4 md:inline-flex gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200/80 w-full md:w-auto">
                         ${statuses.map(st => `
                             <label class="relative cursor-pointer text-center">
                                 <input type="radio"
@@ -255,7 +247,7 @@ function renderForm(data) {
                     </div>
                 </div>
 
-                <!-- Keterangan -->
+                <!-- Keterangan Input -->
                 <div>
                     <input type="text"
                         id="ket_${idx}"
@@ -304,7 +296,7 @@ async function simpanAbsen(e) {
 
     const btn = document.getElementById('btnSimpan');
     btn.setAttribute('disabled', 'true');
-    btn.innerHTML = `<i class="fas fa-spinner fa-spin text-lg"></i> <span>Menyimpan...</span>`;
+    btn.innerHTML = `<i class="fas fa-circle-notch fa-spin text-sm"></i> <span>Menyimpan...</span>`;
 
     document.querySelectorAll('.border-rose-500').forEach(el => el.classList.remove('border-rose-500'));
     document.querySelectorAll('[id^="err_ket_"]').forEach(el => el.classList.add('hidden'));
@@ -377,7 +369,7 @@ async function simpanAbsen(e) {
         showAlert('danger', err.message);
     } finally {
         btn.removeAttribute('disabled');
-        btn.innerHTML = `<i class="fas fa-floppy-disk text-lg"></i> <span>Simpan Absensi</span>`;
+        btn.innerHTML = `<i class="fas fa-floppy-disk text-sm"></i> <span>Simpan Absensi</span>`;
     }
 }
 </script>

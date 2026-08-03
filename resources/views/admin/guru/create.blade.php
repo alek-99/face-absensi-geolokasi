@@ -9,7 +9,7 @@
     <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 bg-white/80 backdrop-blur-md p-6 shadow-xs border-l-4 border-green-600">
         <div>
             <h2 class="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2.5">
-                <span class="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100/50">
+                <span class="p-2 rounded-xl bg-indigo-50 text-green-600 border border-indigo-100/50">
                     <i class="fa-solid fa-user-plus text-xl"></i>
                 </span>
                 Tambah Guru Baru
@@ -200,7 +200,7 @@
                     <button type="reset" class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold text-xs transition-all cursor-pointer">
                         Reset Form
                     </button>
-                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm transition-all flex items-center gap-2 cursor-pointer">
+                    <button type="submit" class="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold text-sm shadow-sm transition-all flex items-center gap-2 cursor-pointer">
                         <i class="fa-solid fa-floppy-disk text-xs"></i> Simpan Data Guru
                     </button>
                 </div>

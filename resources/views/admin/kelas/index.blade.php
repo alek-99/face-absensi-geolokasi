@@ -7,10 +7,10 @@
     <!-- Header Page -->
     <div class="flex flex-col md:flex-row md:items-center p-4 border-l-4 border-green-500 md:justify-between mb-6 gap-4">
         <div>
-            <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Data Kelas</h1>
+            <h1 class="text-2xl font-bold text-slate-800 tracking-tight">DATA KELAS</h1>
             <p class="text-sm text-slate-500">Kelola daftar kelas, wali kelas, dan informasi ruangan sekolah.</p>
         </div>
-        <button onclick="openModalCreate()" class="inline-flex items-center justify-center px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-all focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+        <button onclick="openModalCreate()" class="inline-flex items-center justify-center px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold shadow-sm transition-all focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
             <i class="fa-solid fa-plus mr-2"></i> Tambah Kelas Baru
         </button>
     </div>
@@ -19,11 +19,11 @@
     <div id="toast" class="hidden mb-4 p-4 rounded-lg text-sm font-medium transition-all" role="alert"></div>
 
     <!-- Table Card -->
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="bg-white shadow-sm border border-slate-200 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold uppercase text-slate-500 tracking-wider">
+                    <tr class="bg-green-600 border-b border-slate-200 text-sm font-semibold uppercase text-white tracking-wider">
                         <th class="py-3.5 px-4">No</th>
                         <th class="py-3.5 px-4">Nama Kelas</th>
                         <th class="py-3.5 px-4">Wali Kelas</th>
@@ -55,14 +55,14 @@
                             </td>
                             <td class="py-3.5 px-4 text-center">
                                 <div class="flex items-center justify-center gap-1.5">
-                                    <button onclick="showKelas({{ $kelas->id }})" title="Detail" class="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
-                                        <i class="fa-solid fa-eye"></i>
+                                    <button onclick="showKelas({{ $kelas->id }})" title="Detail" class="p-2 text-white bg-green-600 hover:text-slate-200 hover:bg-green-700 transition-colors">
+                                        <i class="fa-solid fa-eye"></i>Detail
                                     </button>
-                                    <button onclick="editKelas({{ $kelas->id }})" title="Edit" class="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors">
-                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    <button onclick="editKelas({{ $kelas->id }})" title="Edit" class="p-2 text-white bg-amber-500 hover:text-amber-600 hover:bg-amber-600  transition-colors">
+                                        <i class="fa-solid fa-pen-to-square"></i>Edit
                                     </button>
-                                    <button onclick="deleteKelas({{ $kelas->id }})" title="Hapus" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors">
-                                        <i class="fa-solid fa-trash-can"></i>
+                                    <button onclick="deleteKelas({{ $kelas->id }})" title="Hapus" class="p-2 text-white bg-red-600  hover:text-rose-600 hover:bg-rose-50 transition-colors">
+                                        <i class="fa-solid fa-trash-can"></i>Hapus
                                     </button>
                                 </div>
                             </td>

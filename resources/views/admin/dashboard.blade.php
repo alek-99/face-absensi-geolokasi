@@ -7,78 +7,111 @@
     {{-- Header Banner StartAdmin Style --}}
     <div class="bg-white p-5 rounded-md border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div class="flex items-center space-x-4">
-            <div class="w-12 h-12 bg-indigo-600 text-white rounded-md flex items-center justify-center shadow-sm">
-                <i class="fas fa-chart-line text-xl"></i>
+            <div class="w-12 h-12 text-white rounded-md flex items-center justify-center shadow-sm">
+                <img src="{{ asset('storage/images/icon-dashboard.png') }}" class="" alt="icon-dashboard"></img>
             </div>
             <div>
                 <div class="flex items-center gap-2">
-                    <h1 class="text-xl font-bold text-slate-800">Dashboard Admin</h1>
+                    <h1 class="text-xl font-bold text-black">DASHBOARD ADMIN</h1>
                     <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded">SIAFI v1.0</span>
                 </div>
-                <p class="text-slate-500 text-sm mt-0.5">Ringkasan statistik dan aktivitas sistem absensi Face ID.</p>
+                <p class="text-black text-sm mt-0.5">Ringkasan statistik dan aktivitas sistem absensi Face ID.</p>
             </div>
         </div>
         <div class="text-left md:text-right border-t md:border-t-0 pt-3 md:pt-0 border-slate-100">
-            <p class="text-xs text-slate-400 font-medium">Hari Ini</p>
+            <p class="text-xs text-black font-medium">Hari Ini</p>
             <p class="text-sm font-semibold text-slate-700">{{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}</p>
         </div>
     </div>
 
-    {{-- Main Stat Cards Grid (6 Cards Compact & Clean) --}}
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+    {{-- Main Stat Cards Grid (AdminLTE Style / Sesuai Gambar) --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         
-        {{-- Total Siswa --}}
-        <div class="bg-white p-4 rounded-md border border-slate-200 border-l-4 border-l-indigo-600 shadow-sm">
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Siswa</p>
-            <div class="flex items-baseline justify-between mt-2">
-                <span class="text-2xl font-bold text-slate-800">{{ number_format($totalSiswa) }}</span>
-                <i class="fas fa-user-graduate text-slate-300 text-lg"></i>
+        {{-- Total Siswa (Cyan / Info) --}}
+        <div class="bg-cyan-500 text-white rounded shadow relative overflow-hidden flex flex-col justify-between">
+            <div class="p-4 relative z-10">
+                <h3 class="text-3xl font-bold leading-tight">{{ number_format($totalSiswa) }}</h3>
+                <p class="text-sm font-medium mt-1">Total Siswa</p>
             </div>
+            <div class="absolute right-2 top-2 text-black/15 text-6xl pointer-events-none">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <a href="{{ route('admin.siswa.index') ?? '#' }}" class="bg-black/10 hover:bg-black/20 text-white text-xs py-1.5 px-3 text-center flex items-center justify-center gap-1 transition-colors">
+                <span>More info</span>
+                <i class="fas fa-arrow-circle-right text-xs"></i>
+            </a>
         </div>
 
-        {{-- Total Guru --}}
-        <div class="bg-white p-4 rounded-md border border-slate-200 border-l-4 border-l-blue-600 shadow-sm">
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Guru</p>
-            <div class="flex items-baseline justify-between mt-2">
-                <span class="text-2xl font-bold text-slate-800">{{ number_format($totalGuru) }}</span>
-                <i class="fas fa-chalkboard-teacher text-slate-300 text-lg"></i>
+        {{-- Total Guru (Green / Success) --}}
+        <div class="bg-emerald-500 text-white rounded shadow relative overflow-hidden flex flex-col justify-between">
+            <div class="p-4 relative z-10">
+                <h3 class="text-3xl font-bold leading-tight">{{ number_format($totalGuru) }}</h3>
+                <p class="text-sm font-medium mt-1">Total Guru</p>
             </div>
+            <div class="absolute right-2 top-2 text-black/15 text-6xl pointer-events-none">
+                <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+            <a href="{{ route('admin.guru.index') }}" class="bg-black/10 hover:bg-black/20 text-white text-xs py-1.5 px-3 text-center flex items-center justify-center gap-1 transition-colors">
+                <span>More info</span>
+                <i class="fas fa-arrow-circle-right text-xs"></i>
+            </a>
         </div>
 
-        {{-- Total Kelas --}}
-        <div class="bg-white p-4 rounded-md border border-slate-200 border-l-4 border-l-emerald-600 shadow-sm">
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Kelas</p>
-            <div class="flex items-baseline justify-between mt-2">
-                <span class="text-2xl font-bold text-slate-800">{{ number_format($totalKelas) }}</span>
-                <i class="fas fa-school text-slate-300 text-lg"></i>
+        {{-- Total Kelas (Yellow / Warning) --}}
+        <div class="bg-amber-400 text-white rounded shadow relative overflow-hidden flex flex-col justify-between">
+            <div class="p-4 relative z-10">
+                <h3 class="text-3xl font-bold leading-tight">{{ number_format($totalKelas) }}</h3>
+                <p class="text-sm font-medium mt-1">Total Kelas</p>
             </div>
+            <div class="absolute right-2 top-2 text-black/15 text-6xl pointer-events-none">
+                <i class="fas fa-school"></i>
+            </div>
+            <a href="{{ route('admin.kelas.index') ?? '#' }}" class="bg-black/10 hover:bg-black/20 text-white text-xs py-1.5 px-3 text-center flex items-center justify-center gap-1 transition-colors">
+                <span>More info</span>
+                <i class="fas fa-arrow-circle-right text-xs"></i>
+            </a>
         </div>
 
-        {{-- Total Mapel --}}
-        <div class="bg-white p-4 rounded-md border border-slate-200 border-l-4 border-l-purple-600 shadow-sm">
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Mata Pelajaran</p>
-            <div class="flex items-baseline justify-between mt-2">
-                <span class="text-2xl font-bold text-slate-800">{{ number_format($totalMapel) }}</span>
-                <i class="fas fa-book text-slate-300 text-lg"></i>
+        {{-- Total Mapel (Red / Danger) --}}
+        <div class="bg-rose-500 text-white rounded shadow relative overflow-hidden flex flex-col justify-between">
+            <div class="p-4 relative z-10">
+                <h3 class="text-3xl font-bold leading-tight">{{ number_format($totalMapel) }}</h3>
+                <p class="text-sm font-medium mt-1">Mata Pelajaran</p>
             </div>
+            <div class="absolute right-2 top-2 text-black/15 text-6xl pointer-events-none">
+                <i class="fas fa-book"></i>
+            </div>
+            <a href="{{ route('admin.mapel.index') ?? '#' }}" class="bg-black/10 hover:bg-black/20 text-white text-xs py-1.5 px-3 text-center flex items-center justify-center gap-1 transition-colors">
+                <span>More info</span>
+                <i class="fas fa-arrow-circle-right text-xs"></i>
+            </a>
         </div>
 
-        {{-- Total Jadwal --}}
-        <div class="bg-white p-4 rounded-md border border-slate-200 border-l-4 border-l-amber-500 shadow-sm">
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Jadwal Aktif</p>
-            <div class="flex items-baseline justify-between mt-2">
-                <span class="text-2xl font-bold text-slate-800">{{ number_format($totalJadwal) }}</span>
-                <i class="fas fa-calendar-alt text-slate-300 text-lg"></i>
+        {{-- Total Jadwal (Indigo / Primary) --}}
+        <div class="bg-indigo-600 text-white rounded shadow relative overflow-hidden flex flex-col justify-between">
+            <div class="p-4 relative z-10">
+                <h3 class="text-3xl font-bold leading-tight">{{ number_format($totalJadwal) }}</h3>
+                <p class="text-sm font-medium mt-1">Jadwal Aktif</p>
             </div>
+            <div class="absolute right-2 top-2 text-black/15 text-6xl pointer-events-none">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <a href="{{ route('admin.jadwal.index') }}" class="bg-black/10 hover:bg-black/20 text-white text-xs py-1.5 px-3 text-center flex items-center justify-center gap-1 transition-colors">
+                <span>More info</span>
+                <i class="fas fa-arrow-circle-right text-xs"></i>
+            </a>
         </div>
 
-        {{-- Total User --}}
-        <div class="bg-white p-4 rounded-md border border-slate-200 border-l-4 border-l-rose-500 shadow-sm">
-            <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pengguna App</p>
-            <div class="flex items-baseline justify-between mt-2">
-                <span class="text-2xl font-bold text-slate-800">{{ number_format($totalPengguna) }}</span>
-                <i class="fas fa-users text-slate-300 text-lg"></i>
+        {{-- Total User (Purple) --}}
+        <div class="bg-purple-600 text-white rounded shadow relative overflow-hidden flex flex-col justify-between">
+            <div class="p-4 relative z-10">
+                <h3 class="text-3xl font-bold leading-tight">{{ number_format($totalPengguna) }}</h3>
+                <p class="text-sm font-medium mt-1">Pengguna App</p>
             </div>
+            <div class="absolute right-2 top-2 text-black/15 text-6xl pointer-events-none">
+                <i class="fas fa-users"></i>
+            </div>
+           
         </div>
 
     </div>
@@ -88,45 +121,38 @@
 
         {{-- Akses Cepat (3 Cols) --}}
         <div class="lg:col-span-3 space-y-6">
+           {{-- Informasi Sistem (Menggantikan Navigasi Cepat) --}}
             <div class="bg-white rounded-md border border-slate-200 shadow-sm overflow-hidden">
                 <div class="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between">
-                    <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center">
-                        <i class="fas fa-bolt text-amber-500 mr-2"></i> Navigasi Cepat
+                    <h3 class="text-xs font-bold text-black uppercase tracking-wider flex items-center">
+                        <i class="fas fa-info-circle text-indigo-600 mr-2"></i> Informasi Sistem
                     </h3>
+                    <span class="flex h-2 w-2 relative">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
                 </div>
-                <div class="p-3 divide-y divide-slate-100">
-                    <a href="{{ route('admin.absensi.index') }}"
-                        class="flex items-center justify-between py-2.5 px-3 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-indigo-600 rounded transition-colors group">
-                        <div class="flex items-center space-x-3">
-                            <i class="fas fa-user-check text-slate-400 group-hover:text-indigo-600 w-4"></i>
-                            <span>Kelola Absensi</span>
-                        </div>
-                        <i class="fas fa-chevron-right text-xs text-slate-300 group-hover:text-indigo-600"></i>
-                    </a>
-                    <a href="{{ route('admin.absensi.pengajuan') }}"
-                        class="flex items-center justify-between py-2.5 px-3 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-indigo-600 rounded transition-colors group">
-                        <div class="flex items-center space-x-3">
-                            <i class="fas fa-envelope-open-text text-slate-400 group-hover:text-indigo-600 w-4"></i>
-                            <span>Pengajuan Izin</span>
-                        </div>
-                        <i class="fas fa-chevron-right text-xs text-slate-300 group-hover:text-indigo-600"></i>
-                    </a>
-                    <a href="{{ route('admin.guru.index') }}"
-                        class="flex items-center justify-between py-2.5 px-3 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-indigo-600 rounded transition-colors group">
-                        <div class="flex items-center space-x-3">
-                            <i class="fas fa-chalkboard-teacher text-slate-400 group-hover:text-indigo-600 w-4"></i>
-                            <span>Data Guru</span>
-                        </div>
-                        <i class="fas fa-chevron-right text-xs text-slate-300 group-hover:text-indigo-600"></i>
-                    </a>
-                    <a href="{{ route('admin.jadwal.index') }}"
-                        class="flex items-center justify-between py-2.5 px-3 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-indigo-600 rounded transition-colors group">
-                        <div class="flex items-center space-x-3">
-                            <i class="fas fa-calendar-alt text-slate-400 group-hover:text-indigo-600 w-4"></i>
-                            <span>Jadwal Mengajar</span>
-                        </div>
-                        <i class="fas fa-chevron-right text-xs text-slate-300 group-hover:text-indigo-600"></i>
-                    </a>
+                <div class="p-4 space-y-3 text-sm">
+                    <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                        <span class="text-black font-medium">Status Server</span>
+                        <span class="text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded text-xs">Online</span>
+                    </div>
+                    <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                        <span class="text-black font-medium">Engine Absensi</span>
+                        <span class="text-black font-semibold text-xs">Face Recognition AI</span>
+                    </div>
+                    <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                        <span class="text-black font-medium">Versi Aplikasi</span>
+                        <span class="text-black font-semibold text-xs">v1.0.0</span>
+                    </div>
+                    <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                        <span class="text-black font-medium">Laravel Versi</span>
+                        <span class="text-black font-semibold text-xs">{{ app()->version() }}</span>
+                    </div>
+                    <div class="flex justify-between items-center py-1.5">
+                        <span class="text-black font-medium">Waktu Server</span>
+                        <span class="text-black font-semibold text-xs">{{ \Carbon\Carbon::now()->format('H:i T') }}</span>
+                    </div>
                 </div>
             </div>
 
