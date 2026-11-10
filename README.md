@@ -469,3 +469,37 @@ Melalui kombinasi teknologi pengenalan wajah, geolokasi, dan manajemen data teri
 <p align="center">
   Dikembangkan dengan Laravel dan semangat untuk terus belajar. Jangan Lupa START nya yah HEHE.
 </p>
+
+## Support This Project
+
+Jika proyek ini menarik, bermanfaat, atau memberikan inspirasi bagi Anda, jangan ragu untuk memberikan **Star (GitHub)** pada repository ini.
+
+Setiap star merupakan bentuk apresiasi kecil yang sangat berarti bagi pengembangan proyek open-source. Dukungan Anda menjadi motivasi untuk terus belajar, bereksperimen, memperbaiki, dan menghadirkan inovasi yang lebih baik.
+
+<p align="center">
+  <a href="https://github.com/alek-99/face-absensi-geolokasi">
+    <img src="https://img.shields.io/badge/Star%20This%20Repository-GitHub-181717?style=for-the-badge&logo=github" alt="Star this repository" />
+  </a>
+</p>
+
+<p align="center">
+  <i>"Behind every great project, there are people who believe in the value of sharing, learning, and building together."</i>
+</p>
+
+<p align="center">
+  <i>"Satu klik untuk memberikan star, satu semangat baru untuk terus berkarya."</i>
+</p>
+
+---
+
+<p align="center">
+  <strong>SISTEM INFORMASI ABSENSI GURU</strong>
+  <br />
+  <sub>Digital Attendance. Smarter Education. Better Future.</sub>
+  <br />
+  <br />
+  Built with Laravel, Passion, and Continuous Learning.
+  <br />
+  <br />
+  Jangan lupa kasih star-nya, ya! Hehe.
+</p>
