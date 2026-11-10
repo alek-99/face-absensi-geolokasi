@@ -467,5 +467,5 @@ Melalui kombinasi teknologi pengenalan wajah, geolokasi, dan manajemen data teri
 ---
 
 <p align="center">
-  Dikembangkan dengan Laravel dan semangat untuk terus belajar.
+  Dikembangkan dengan Laravel dan semangat untuk terus belajar. Jangan Lupa START nya yah HEHE.
 </p>
